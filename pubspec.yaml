@@ -1,0 +1,55 @@
+name: ski_tracker
+description: Ski jump tracker - track airtime, distance, and height of your jumps.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+  flutter: '>=3.16.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+
+  # Data classes
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+
+  # Local database
+  drift: ^2.14.1
+  sqlite3_flutter_libs: ^0.5.18
+  path_provider: ^2.1.1
+  path: ^1.8.3
+
+  # Sensors
+  sensors_plus: ^4.0.2
+  geolocator: ^10.1.0
+  environment_sensors: ^0.2.0
+
+  # UI
+  fl_chart: ^0.66.0
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+
+  # Utils
+  uuid: ^4.2.1
+  intl: ^0.19.0
+  collection: ^1.18.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  build_runner: ^2.4.7
+  freezed: ^2.4.5
+  json_serializable: ^6.7.1
+  riverpod_generator: ^2.3.9
+  drift_dev: ^2.14.1
+  mocktail: ^1.0.1
+
+flutter:
+  uses-material-design: true
