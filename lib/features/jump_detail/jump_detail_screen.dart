@@ -6,6 +6,8 @@ import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_ti
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/database/database.dart';
+import '../../core/models/trick.dart';
+import '../session/widgets/trick_picker_sheet.dart';
 import 'jump_detail_providers.dart';
 
 class JumpDetailScreen extends ConsumerWidget {
@@ -117,6 +119,11 @@ class JumpDetailScreen extends ConsumerWidget {
                         valueColor: theme.colorScheme.secondary),
                   ]),
                 ),
+              ),
+
+              // Tricks section
+              SliverToBoxAdapter(
+                child: _TricksSection(jump: jump, jumpId: jumpId, ref: ref),
               ),
 
               // Trajectory chart
@@ -303,6 +310,116 @@ class _TrajectoryChart extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TricksSection extends StatelessWidget {
+  final Jump jump;
+  final String jumpId;
+  final WidgetRef ref;
+
+  const _TricksSection({
+    required this.jump,
+    required this.jumpId,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tricks = parseTrickLabel(jump.trickLabel);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text(
+                  'TRICKS',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white54,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () async {
+                    final result = await showTrickPicker(
+                      context,
+                      currentLabel: jump.trickLabel,
+                    );
+                    if (result == null && jump.trickLabel != null) return;
+                    await ref
+                        .read(jumpRepositoryProvider)
+                        .updateJumpTricks(jumpId, result);
+                    // Invalidate to refresh the screen
+                    ref.invalidate(jumpDetailProvider(jumpId));
+                  },
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.edit, color: Color(0xFF4FC3F7), size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        'Edit',
+                        style: TextStyle(
+                          color: Color(0xFF4FC3F7),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (tricks.isEmpty)
+              const Text(
+                'No tricks labeled',
+                style: TextStyle(color: Colors.white30, fontSize: 13),
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: tricks.map((name) {
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4FC3F7).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF4FC3F7).withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Text(
+                      name,
+                      style: const TextStyle(
+                        color: Color(0xFF4FC3F7),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -538,6 +538,12 @@ class $JumpsTable extends Jumps with TableInfo<$JumpsTable, Jump> {
   late final GeneratedColumn<double> altitudeTakeoff = GeneratedColumn<double>(
       'altitude_takeoff', aliasedName, true,
       type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _trickLabelMeta =
+      const VerificationMeta('trickLabel');
+  @override
+  late final GeneratedColumn<String> trickLabel = GeneratedColumn<String>(
+      'trick_label', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -554,7 +560,8 @@ class $JumpsTable extends Jumps with TableInfo<$JumpsTable, Jump> {
         lonTakeoff,
         latLanding,
         lonLanding,
-        altitudeTakeoff
+        altitudeTakeoff,
+        trickLabel
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -661,6 +668,12 @@ class $JumpsTable extends Jumps with TableInfo<$JumpsTable, Jump> {
           altitudeTakeoff.isAcceptableOrUnknown(
               data['altitude_takeoff']!, _altitudeTakeoffMeta));
     }
+    if (data.containsKey('trick_label')) {
+      context.handle(
+          _trickLabelMeta,
+          trickLabel.isAcceptableOrUnknown(
+              data['trick_label']!, _trickLabelMeta));
+    }
     return context;
   }
 
@@ -700,6 +713,8 @@ class $JumpsTable extends Jumps with TableInfo<$JumpsTable, Jump> {
           .read(DriftSqlType.double, data['${effectivePrefix}lon_landing']),
       altitudeTakeoff: attachedDatabase.typeMapping.read(
           DriftSqlType.double, data['${effectivePrefix}altitude_takeoff']),
+      trickLabel: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}trick_label']),
     );
   }
 
@@ -725,6 +740,7 @@ class Jump extends DataClass implements Insertable<Jump> {
   final double? latLanding;
   final double? lonLanding;
   final double? altitudeTakeoff;
+  final String? trickLabel;
   const Jump(
       {required this.id,
       required this.sessionId,
@@ -740,7 +756,8 @@ class Jump extends DataClass implements Insertable<Jump> {
       this.lonTakeoff,
       this.latLanding,
       this.lonLanding,
-      this.altitudeTakeoff});
+      this.altitudeTakeoff,
+      this.trickLabel});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -768,6 +785,9 @@ class Jump extends DataClass implements Insertable<Jump> {
     }
     if (!nullToAbsent || altitudeTakeoff != null) {
       map['altitude_takeoff'] = Variable<double>(altitudeTakeoff);
+    }
+    if (!nullToAbsent || trickLabel != null) {
+      map['trick_label'] = Variable<String>(trickLabel);
     }
     return map;
   }
@@ -799,6 +819,9 @@ class Jump extends DataClass implements Insertable<Jump> {
       altitudeTakeoff: altitudeTakeoff == null && nullToAbsent
           ? const Value.absent()
           : Value(altitudeTakeoff),
+      trickLabel: trickLabel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trickLabel),
     );
   }
 
@@ -821,6 +844,7 @@ class Jump extends DataClass implements Insertable<Jump> {
       latLanding: serializer.fromJson<double?>(json['latLanding']),
       lonLanding: serializer.fromJson<double?>(json['lonLanding']),
       altitudeTakeoff: serializer.fromJson<double?>(json['altitudeTakeoff']),
+      trickLabel: serializer.fromJson<String?>(json['trickLabel']),
     );
   }
   @override
@@ -842,6 +866,7 @@ class Jump extends DataClass implements Insertable<Jump> {
       'latLanding': serializer.toJson<double?>(latLanding),
       'lonLanding': serializer.toJson<double?>(lonLanding),
       'altitudeTakeoff': serializer.toJson<double?>(altitudeTakeoff),
+      'trickLabel': serializer.toJson<String?>(trickLabel),
     };
   }
 
@@ -860,7 +885,8 @@ class Jump extends DataClass implements Insertable<Jump> {
           Value<double?> lonTakeoff = const Value.absent(),
           Value<double?> latLanding = const Value.absent(),
           Value<double?> lonLanding = const Value.absent(),
-          Value<double?> altitudeTakeoff = const Value.absent()}) =>
+          Value<double?> altitudeTakeoff = const Value.absent(),
+          Value<String?> trickLabel = const Value.absent()}) =>
       Jump(
         id: id ?? this.id,
         sessionId: sessionId ?? this.sessionId,
@@ -879,6 +905,7 @@ class Jump extends DataClass implements Insertable<Jump> {
         altitudeTakeoff: altitudeTakeoff.present
             ? altitudeTakeoff.value
             : this.altitudeTakeoff,
+        trickLabel: trickLabel.present ? trickLabel.value : this.trickLabel,
       );
   Jump copyWithCompanion(JumpsCompanion data) {
     return Jump(
@@ -909,6 +936,8 @@ class Jump extends DataClass implements Insertable<Jump> {
       altitudeTakeoff: data.altitudeTakeoff.present
           ? data.altitudeTakeoff.value
           : this.altitudeTakeoff,
+      trickLabel:
+          data.trickLabel.present ? data.trickLabel.value : this.trickLabel,
     );
   }
 
@@ -929,7 +958,8 @@ class Jump extends DataClass implements Insertable<Jump> {
           ..write('lonTakeoff: $lonTakeoff, ')
           ..write('latLanding: $latLanding, ')
           ..write('lonLanding: $lonLanding, ')
-          ..write('altitudeTakeoff: $altitudeTakeoff')
+          ..write('altitudeTakeoff: $altitudeTakeoff, ')
+          ..write('trickLabel: $trickLabel')
           ..write(')'))
         .toString();
   }
@@ -950,7 +980,8 @@ class Jump extends DataClass implements Insertable<Jump> {
       lonTakeoff,
       latLanding,
       lonLanding,
-      altitudeTakeoff);
+      altitudeTakeoff,
+      trickLabel);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -969,7 +1000,8 @@ class Jump extends DataClass implements Insertable<Jump> {
           other.lonTakeoff == this.lonTakeoff &&
           other.latLanding == this.latLanding &&
           other.lonLanding == this.lonLanding &&
-          other.altitudeTakeoff == this.altitudeTakeoff);
+          other.altitudeTakeoff == this.altitudeTakeoff &&
+          other.trickLabel == this.trickLabel);
 }
 
 class JumpsCompanion extends UpdateCompanion<Jump> {
@@ -988,6 +1020,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
   final Value<double?> latLanding;
   final Value<double?> lonLanding;
   final Value<double?> altitudeTakeoff;
+  final Value<String?> trickLabel;
   final Value<int> rowid;
   const JumpsCompanion({
     this.id = const Value.absent(),
@@ -1005,6 +1038,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
     this.latLanding = const Value.absent(),
     this.lonLanding = const Value.absent(),
     this.altitudeTakeoff = const Value.absent(),
+    this.trickLabel = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   JumpsCompanion.insert({
@@ -1023,6 +1057,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
     this.latLanding = const Value.absent(),
     this.lonLanding = const Value.absent(),
     this.altitudeTakeoff = const Value.absent(),
+    this.trickLabel = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         sessionId = Value(sessionId),
@@ -1050,6 +1085,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
     Expression<double>? latLanding,
     Expression<double>? lonLanding,
     Expression<double>? altitudeTakeoff,
+    Expression<String>? trickLabel,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1070,6 +1106,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
       if (latLanding != null) 'lat_landing': latLanding,
       if (lonLanding != null) 'lon_landing': lonLanding,
       if (altitudeTakeoff != null) 'altitude_takeoff': altitudeTakeoff,
+      if (trickLabel != null) 'trick_label': trickLabel,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1090,6 +1127,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
       Value<double?>? latLanding,
       Value<double?>? lonLanding,
       Value<double?>? altitudeTakeoff,
+      Value<String?>? trickLabel,
       Value<int>? rowid}) {
     return JumpsCompanion(
       id: id ?? this.id,
@@ -1107,6 +1145,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
       latLanding: latLanding ?? this.latLanding,
       lonLanding: lonLanding ?? this.lonLanding,
       altitudeTakeoff: altitudeTakeoff ?? this.altitudeTakeoff,
+      trickLabel: trickLabel ?? this.trickLabel,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1159,6 +1198,9 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
     if (altitudeTakeoff.present) {
       map['altitude_takeoff'] = Variable<double>(altitudeTakeoff.value);
     }
+    if (trickLabel.present) {
+      map['trick_label'] = Variable<String>(trickLabel.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1183,6 +1225,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
           ..write('latLanding: $latLanding, ')
           ..write('lonLanding: $lonLanding, ')
           ..write('altitudeTakeoff: $altitudeTakeoff, ')
+          ..write('trickLabel: $trickLabel, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2370,6 +2413,7 @@ typedef $$JumpsTableCreateCompanionBuilder = JumpsCompanion Function({
   Value<double?> latLanding,
   Value<double?> lonLanding,
   Value<double?> altitudeTakeoff,
+  Value<String?> trickLabel,
   Value<int> rowid,
 });
 typedef $$JumpsTableUpdateCompanionBuilder = JumpsCompanion Function({
@@ -2388,6 +2432,7 @@ typedef $$JumpsTableUpdateCompanionBuilder = JumpsCompanion Function({
   Value<double?> latLanding,
   Value<double?> lonLanding,
   Value<double?> altitudeTakeoff,
+  Value<String?> trickLabel,
   Value<int> rowid,
 });
 
@@ -2423,6 +2468,7 @@ class $$JumpsTableTableManager extends RootTableManager<
             Value<double?> latLanding = const Value.absent(),
             Value<double?> lonLanding = const Value.absent(),
             Value<double?> altitudeTakeoff = const Value.absent(),
+            Value<String?> trickLabel = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               JumpsCompanion(
@@ -2441,6 +2487,7 @@ class $$JumpsTableTableManager extends RootTableManager<
             latLanding: latLanding,
             lonLanding: lonLanding,
             altitudeTakeoff: altitudeTakeoff,
+            trickLabel: trickLabel,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -2459,6 +2506,7 @@ class $$JumpsTableTableManager extends RootTableManager<
             Value<double?> latLanding = const Value.absent(),
             Value<double?> lonLanding = const Value.absent(),
             Value<double?> altitudeTakeoff = const Value.absent(),
+            Value<String?> trickLabel = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               JumpsCompanion.insert(
@@ -2477,6 +2525,7 @@ class $$JumpsTableTableManager extends RootTableManager<
             latLanding: latLanding,
             lonLanding: lonLanding,
             altitudeTakeoff: altitudeTakeoff,
+            trickLabel: trickLabel,
             rowid: rowid,
           ),
         ));
@@ -2559,6 +2608,11 @@ class $$JumpsTableFilterComposer
       column: $state.table.altitudeTakeoff,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get trickLabel => $state.composableBuilder(
+      column: $state.table.trickLabel,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
 }
 
 class $$JumpsTableOrderingComposer
@@ -2636,6 +2690,11 @@ class $$JumpsTableOrderingComposer
 
   ColumnOrderings<double> get altitudeTakeoff => $state.composableBuilder(
       column: $state.table.altitudeTakeoff,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get trickLabel => $state.composableBuilder(
+      column: $state.table.trickLabel,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }

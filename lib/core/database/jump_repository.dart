@@ -44,6 +44,14 @@ class JumpRepository {
         ));
   }
 
+  // ---- Update ----
+
+  Future<void> updateJumpTricks(String jumpId, String? trickLabel) {
+    return (_db.update(_db.jumps)..where((j) => j.id.equals(jumpId))).write(
+      JumpsCompanion(trickLabel: Value(trickLabel)),
+    );
+  }
+
   // ---- Read ----
 
   Future<Jump?> getJumpById(String id) {

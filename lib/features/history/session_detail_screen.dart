@@ -5,6 +5,7 @@ import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_ti
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/database/database.dart';
+import '../../core/models/trick.dart';
 import '../../shared/widgets/stat_card.dart';
 import '../jump_detail/jump_detail_screen.dart';
 import 'history_providers.dart';
@@ -244,6 +245,7 @@ class _JumpTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final score =
         (jump.airtimeMs / 100) * 40 + jump.heightM * 30 + jump.distanceM * 10;
+    final tricks = parseTrickLabel(jump.trickLabel);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
@@ -256,53 +258,83 @@ class _JumpTile extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF4FC3F7).withValues(alpha: 0.2),
-                ),
-                child: Center(
-                  child: Text(
-                    '$number',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4FC3F7),
+              Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF4FC3F7).withValues(alpha: 0.2),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$number',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF4FC3F7),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      '${jump.airtimeMs.toStringAsFixed(0)}ms',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ),
+                  Text('${jump.heightM.toStringAsFixed(1)}m',
+                      style:
+                          const TextStyle(color: Colors.white60, fontSize: 13)),
+                  const SizedBox(width: 16),
+                  Text('${jump.distanceM.toStringAsFixed(1)}m',
+                      style:
+                          const TextStyle(color: Colors.white60, fontSize: 13)),
+                  const SizedBox(width: 16),
+                  Text(
+                    '${score.toStringAsFixed(0)} pts',
+                    style: const TextStyle(
+                      color: Color(0xFFFF7043),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.chevron_right,
+                      color: Colors.white24, size: 18),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  '${jump.airtimeMs.toStringAsFixed(0)}ms',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
+              if (tricks.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: tricks.map((name) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4FC3F7).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        name,
+                        style: const TextStyle(
+                          color: Color(0xFF4FC3F7),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
-              ),
-              Text('${jump.heightM.toStringAsFixed(1)}m',
-                  style:
-                      const TextStyle(color: Colors.white60, fontSize: 13)),
-              const SizedBox(width: 16),
-              Text('${jump.distanceM.toStringAsFixed(1)}m',
-                  style:
-                      const TextStyle(color: Colors.white60, fontSize: 13)),
-              const SizedBox(width: 16),
-              Text(
-                '${score.toStringAsFixed(0)} pts',
-                style: const TextStyle(
-                  color: Color(0xFFFF7043),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.chevron_right,
-                  color: Colors.white24, size: 18),
+              ],
             ],
           ),
         ),

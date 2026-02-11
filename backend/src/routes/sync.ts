@@ -28,6 +28,7 @@ interface SyncSessionPayload {
     latLanding?: number;
     lonLanding?: number;
     altitudeTakeoff?: number;
+    trickLabel?: string;
   }>;
 }
 
@@ -109,10 +110,11 @@ async function syncSessions(
           (jump.airtimeMs / 100) * 40 + jump.heightM * 30 + jump.distanceM * 10;
 
         await env.DB.prepare(`
-          INSERT INTO synced_jumps (id, session_id, user_id, run_id, takeoff_timestamp_us, landing_timestamp_us, airtime_ms, distance_m, height_m, speed_kmh, landing_g_force, lat_takeoff, lon_takeoff, lat_landing, lon_landing, altitude_takeoff, score)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO synced_jumps (id, session_id, user_id, run_id, takeoff_timestamp_us, landing_timestamp_us, airtime_ms, distance_m, height_m, speed_kmh, landing_g_force, lat_takeoff, lon_takeoff, lat_landing, lon_landing, altitude_takeoff, score, trick_label)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
-            score = excluded.score
+            score = excluded.score,
+            trick_label = excluded.trick_label
         `)
           .bind(
             jump.id,
@@ -132,6 +134,7 @@ async function syncSessions(
             jump.lonLanding ?? null,
             jump.altitudeTakeoff ?? null,
             score,
+            jump.trickLabel ?? null,
           )
           .run();
       }

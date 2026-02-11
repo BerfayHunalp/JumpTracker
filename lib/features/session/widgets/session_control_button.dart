@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../label_jumps_screen.dart';
 import '../providers/session_providers.dart';
 
 class SessionControlButton extends ConsumerWidget {
@@ -13,7 +14,29 @@ class SessionControlButton extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
         child: GestureDetector(
-          onTap: () => ref.read(sessionProvider.notifier).toggleRecording(),
+          onTap: () {
+            final notifier = ref.read(sessionProvider.notifier);
+
+            if (isRecording) {
+              // Capture session info before stopping
+              final sessionId = notifier.currentSessionId;
+              final jumpCount = ref.read(sessionProvider).jumps.length;
+              notifier.toggleRecording();
+
+              // Navigate to label screen if jumps were detected
+              if (sessionId != null && jumpCount > 0) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        LabelJumpsScreen(sessionId: sessionId),
+                  ),
+                );
+              }
+            } else {
+              notifier.toggleRecording();
+            }
+          },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             width: 80,

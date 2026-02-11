@@ -49,6 +49,7 @@ class SyncService {
                     'latLanding': j.latLanding,
                     'lonLanding': j.lonLanding,
                     'altitudeTakeoff': j.altitudeTakeoff,
+                    'trickLabel': j.trickLabel,
                   })
               .toList(),
         });

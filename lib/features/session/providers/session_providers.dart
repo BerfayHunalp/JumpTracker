@@ -83,6 +83,9 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
   String? _currentSessionId;
 
+  /// The session ID of the currently recording (or just-stopped) session.
+  String? get currentSessionId => _currentSessionId;
+
   SessionNotifier({
     required dynamic sensorSource,
     required SessionRepository sessionRepo,

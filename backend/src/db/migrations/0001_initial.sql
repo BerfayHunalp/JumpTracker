@@ -62,7 +62,8 @@ CREATE TABLE IF NOT EXISTS synced_jumps (
   lat_landing REAL,
   lon_landing REAL,
   altitude_takeoff REAL,
-  score REAL NOT NULL
+  score REAL NOT NULL,
+  trick_label TEXT
 );
 
 -- Leaderboard cache (materialized aggregation)
