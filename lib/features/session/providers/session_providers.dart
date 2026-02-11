@@ -1,10 +1,16 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:uuid/uuid.dart';
 import '../../../core/detection/jump_detector.dart';
 import '../../../core/detection/session_recorder.dart';
-import '../../../core/models/jump.dart';
+import '../../../core/models/jump.dart' as model;
+import '../../../core/database/database.dart';
+import '../../../core/sensors/sensors.dart';
 import 'sensor_simulator.dart';
+
+const _uuid = Uuid();
 
 /// Immutable state snapshot for the dashboard UI.
 class SessionState {
@@ -14,9 +20,9 @@ class SessionState {
   final double currentAltitudeM;
   final double currentGForce;
   final JumpState detectorState;
-  final List<Jump> jumps;
+  final List<model.Jump> jumps;
   final List<LatLng> gpsTrack;
-  final Jump? lastJump;
+  final model.Jump? lastJump;
 
   const SessionState({
     this.isRecording = false,
@@ -37,9 +43,9 @@ class SessionState {
     double? currentAltitudeM,
     double? currentGForce,
     JumpState? detectorState,
-    List<Jump>? jumps,
+    List<model.Jump>? jumps,
     List<LatLng>? gpsTrack,
-    Jump? lastJump,
+    model.Jump? lastJump,
     bool clearLastJump = false,
   }) {
     return SessionState(
@@ -56,18 +62,36 @@ class SessionState {
   }
 }
 
-/// Owns the SessionRecorder, timers, and simulator.
-/// Exposes immutable SessionState snapshots to the UI.
+/// Owns the SessionRecorder, timers, and sensor source.
+/// Persists sessions and jumps to the local database.
 class SessionNotifier extends StateNotifier<SessionState> {
+  final dynamic _sensorSource;
+  final SessionRepository _sessionRepo;
+  final JumpRepository _jumpRepo;
+  final GpsRepository _gpsRepo;
+  final bool _useMock;
+
   late final SessionRecorder _recorder;
-  final SensorSimulator _simulator = SensorSimulator();
 
   Timer? _sensorTimer;
   Timer? _uiTimer;
   Timer? _durationTimer;
   DateTime? _startTime;
 
-  SessionNotifier() : super(const SessionState()) {
+  String? _currentSessionId;
+
+  SessionNotifier({
+    required dynamic sensorSource,
+    required SessionRepository sessionRepo,
+    required JumpRepository jumpRepo,
+    required GpsRepository gpsRepo,
+    required bool useMock,
+  })  : _sensorSource = sensorSource,
+        _sessionRepo = sessionRepo,
+        _jumpRepo = jumpRepo,
+        _gpsRepo = gpsRepo,
+        _useMock = useMock,
+        super(const SessionState()) {
     _recorder = SessionRecorder(
       onJump: _onJumpDetected,
     );
@@ -81,15 +105,55 @@ class SessionNotifier extends StateNotifier<SessionState> {
     }
   }
 
-  void _startSession() {
-    _recorder.start();
-    _simulator.reset();
+  void _startSession() async {
+    _currentSessionId = _uuid.v4();
     _startTime = DateTime.now();
 
-    // Sensor processing at 100Hz (pure computation)
-    _sensorTimer = Timer.periodic(const Duration(milliseconds: 10), (_) {
-      _processSensorTick();
-    });
+    // Persist new session row
+    await _sessionRepo.insertSession(
+      id: _currentSessionId!,
+      startedAt: _startTime!,
+    );
+
+    _recorder.start();
+
+    if (_useMock) {
+      // Desktop simulation: timer-driven at 100Hz
+      (_sensorSource as SensorSimulator).reset();
+      _sensorTimer = Timer.periodic(const Duration(milliseconds: 10), (_) {
+        _processSensorTick();
+      });
+    } else {
+      // Real sensors: callback-driven
+      final service = _sensorSource as SensorService;
+      service.reset();
+      service.onAccel = (timestampUs, x, y, z) {
+        _recorder.processAccelerometer(timestampUs, x, y, z);
+      };
+      service.onGps = ({
+        required double latitude,
+        required double longitude,
+        required double altitude,
+        required double speed,
+        required double bearing,
+        required double accuracy,
+        required int timestampUs,
+      }) {
+        _recorder.processGps(
+          latitude: latitude,
+          longitude: longitude,
+          altitude: altitude,
+          speed: speed,
+          bearing: bearing,
+          accuracy: accuracy,
+          timestampUs: timestampUs,
+        );
+      };
+      service.onPressure = (pressureHpa) {
+        _recorder.processBarometer(pressureHpa);
+      };
+      service.start();
+    }
 
     // UI state snapshot at ~12Hz
     _uiTimer = Timer.periodic(const Duration(milliseconds: 80), (_) {
@@ -110,25 +174,67 @@ class SessionNotifier extends StateNotifier<SessionState> {
     );
   }
 
-  void _stopSession() {
+  void _stopSession() async {
     _sensorTimer?.cancel();
     _uiTimer?.cancel();
     _durationTimer?.cancel();
     _recorder.stop();
+
+    if (!_useMock) {
+      (_sensorSource as SensorService).stop();
+    }
+
     _emitUiSnapshot();
+
+    // Persist final session stats
+    if (_currentSessionId != null) {
+      final jumps = _recorder.jumps;
+      final maxAirtime =
+          jumps.isEmpty ? 0.0 : jumps.map((j) => j.airtimeMs).reduce(max);
+
+      await _sessionRepo.finishSession(
+        id: _currentSessionId!,
+        endedAt: DateTime.now(),
+        totalJumps: jumps.length,
+        maxAirtimeMs: maxAirtime,
+        totalVerticalM: 0, // Run tracking is a future feature
+      );
+
+      // Batch-save GPS track
+      final gpsFrames = _recorder.gpsTrack;
+      if (gpsFrames.isNotEmpty) {
+        final companions = gpsFrames
+            .where((f) => f.latitude != null && f.longitude != null)
+            .map((f) => GpsPointsCompanion.insert(
+                  sessionId: _currentSessionId!,
+                  timestampUs: f.timestampUs,
+                  latitude: f.latitude!,
+                  longitude: f.longitude!,
+                  altitude: f.gpsAltitude ?? 0,
+                  speed: f.gpsSpeed ?? 0,
+                  bearing: f.gpsBearing ?? 0,
+                  accuracy: f.gpsAccuracy ?? 0,
+                ))
+            .toList();
+        await _gpsRepo.insertPoints(companions);
+      }
+    }
+
     state = state.copyWith(isRecording: false);
   }
 
+  /// Timer-driven sensor processing for desktop simulation.
   void _processSensorTick() {
     final now = DateTime.now().microsecondsSinceEpoch;
+    final sim = _sensorSource as SensorSimulator;
 
     // Accel at every tick (100Hz)
-    final accel = _simulator.nextAccel(now);
+    final accel = sim.nextAccel(now);
     _recorder.processAccelerometer(now, accel.x, accel.y, accel.z);
 
     // GPS at ~1Hz (every 100th tick)
     if (_recorder.frameCount % 100 == 0) {
-      final gps = _simulator.nextGps(now);
+      final gps = sim.nextGps(now);
       _recorder.processGps(
         latitude: gps.lat,
         longitude: gps.lon,
@@ -142,7 +248,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
     // Baro at ~10Hz (every 10th tick)
     if (_recorder.frameCount % 10 == 0) {
-      _recorder.processBarometer(_simulator.currentPressure);
+      _recorder.processBarometer(sim.currentPressure);
     }
   }
 
@@ -153,11 +259,12 @@ class SessionNotifier extends StateNotifier<SessionState> {
         .toList();
 
     final jumps = _recorder.jumps;
+    final source = _sensorSource;
 
     state = state.copyWith(
-      currentGForce: _simulator.currentGForce,
-      currentSpeedKmh: _simulator.currentSpeedKmh,
-      currentAltitudeM: _simulator.currentAltitude,
+      currentGForce: source.currentGForce,
+      currentSpeedKmh: source.currentSpeedKmh,
+      currentAltitudeM: source.currentAltitude,
       detectorState: _recorder.detectorState,
       jumps: jumps,
       gpsTrack: track,
@@ -165,8 +272,27 @@ class SessionNotifier extends StateNotifier<SessionState> {
     );
   }
 
-  void _onJumpDetected(Jump jump) {
-    // Immediate UI update on jump detection
+  void _onJumpDetected(model.Jump jump) async {
+    // Persist jump immediately
+    if (_currentSessionId != null) {
+      await _jumpRepo.insertJump(
+        id: jump.id,
+        sessionId: _currentSessionId!,
+        runId: jump.runId,
+        takeoffTimestampUs: jump.takeoffTimestampUs,
+        landingTimestampUs: jump.landingTimestampUs,
+        airtimeMs: jump.airtimeMs,
+        distanceM: jump.distanceM,
+        heightM: jump.heightM,
+        speedKmh: jump.speedKmh,
+        landingGForce: jump.landingGForce,
+        latTakeoff: jump.latTakeoff,
+        lonTakeoff: jump.lonTakeoff,
+        latLanding: jump.latLanding,
+        lonLanding: jump.lonLanding,
+        altitudeTakeoff: jump.altitudeTakeoff,
+      );
+    }
     _emitUiSnapshot();
   }
 
@@ -191,7 +317,13 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
 final sessionProvider =
     StateNotifierProvider<SessionNotifier, SessionState>((ref) {
-  return SessionNotifier();
+  return SessionNotifier(
+    sensorSource: ref.watch(sensorSourceProvider),
+    sessionRepo: ref.watch(sessionRepositoryProvider),
+    jumpRepo: ref.watch(jumpRepositoryProvider),
+    gpsRepo: ref.watch(gpsRepositoryProvider),
+    useMock: ref.watch(useMockSensorsProvider),
+  );
 });
 
 final isRecordingProvider = Provider<bool>((ref) {
@@ -206,11 +338,11 @@ final detectorStateProvider = Provider<JumpState>((ref) {
   return ref.watch(sessionProvider.select((s) => s.detectorState));
 });
 
-final jumpListProvider = Provider<List<Jump>>((ref) {
+final jumpListProvider = Provider<List<model.Jump>>((ref) {
   return ref.watch(sessionProvider.select((s) => s.jumps));
 });
 
-final lastJumpProvider = Provider<Jump?>((ref) {
+final lastJumpProvider = Provider<model.Jump?>((ref) {
   return ref.watch(sessionProvider.select((s) => s.lastJump));
 });
 

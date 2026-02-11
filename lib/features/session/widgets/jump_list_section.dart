@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/jump.dart';
+import '../../jump_detail/jump_detail_screen.dart';
 import '../providers/session_providers.dart';
 
 class JumpListSection extends ConsumerWidget {
@@ -67,61 +68,70 @@ class _JumpTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => JumpDetailScreen(jumpId: jump.id),
+          ),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF4FC3F7).withValues(alpha: 0.2),
-              ),
-              child: Center(
-                child: Text(
-                  '$number',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF4FC3F7),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF4FC3F7).withValues(alpha: 0.2),
+                ),
+                child: Center(
+                  child: Text(
+                    '$number',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4FC3F7),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                '${jump.airtimeMs.toStringAsFixed(0)}ms',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '${jump.airtimeMs.toStringAsFixed(0)}ms',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
-            Text(
-              '${jump.heightM.toStringAsFixed(1)}m',
-              style: const TextStyle(color: Colors.white60, fontSize: 13),
-            ),
-            const SizedBox(width: 16),
-            Text(
-              '${jump.distanceM.toStringAsFixed(1)}m',
-              style: const TextStyle(color: Colors.white60, fontSize: 13),
-            ),
-            const SizedBox(width: 16),
-            Text(
-              '${jump.score.toStringAsFixed(0)} pts',
-              style: const TextStyle(
-                color: Color(0xFFFF7043),
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+              Text(
+                '${jump.heightM.toStringAsFixed(1)}m',
+                style: const TextStyle(color: Colors.white60, fontSize: 13),
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Text(
+                '${jump.distanceM.toStringAsFixed(1)}m',
+                style: const TextStyle(color: Colors.white60, fontSize: 13),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                '${jump.score.toStringAsFixed(0)} pts',
+                style: const TextStyle(
+                  color: Color(0xFFFF7043),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

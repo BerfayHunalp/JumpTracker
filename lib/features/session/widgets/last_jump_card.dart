@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/jump.dart';
+import '../../jump_detail/jump_detail_screen.dart';
 import '../providers/session_providers.dart';
 
 class LastJumpCard extends ConsumerWidget {
@@ -55,20 +56,32 @@ class LastJumpCard extends ConsumerWidget {
                 ],
               ),
             ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: jump == null
-                  ? const Padding(
-                      key: ValueKey('empty'),
-                      padding: EdgeInsets.all(20),
-                      child: Center(
-                        child: Text(
-                          'No jumps detected yet',
-                          style: TextStyle(color: Colors.white30, fontSize: 14),
+            GestureDetector(
+              onTap: jump != null
+                  ? () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              JumpDetailScreen(jumpId: jump.id),
                         ),
-                      ),
-                    )
-                  : _JumpMetrics(key: ValueKey(jump.id), jump: jump),
+                      )
+                  : null,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: jump == null
+                    ? const Padding(
+                        key: ValueKey('empty'),
+                        padding: EdgeInsets.all(20),
+                        child: Center(
+                          child: Text(
+                            'No jumps detected yet',
+                            style:
+                                TextStyle(color: Colors.white30, fontSize: 14),
+                          ),
+                        ),
+                      )
+                    : _JumpMetrics(key: ValueKey(jump.id), jump: jump),
+              ),
             ),
           ],
         ),
