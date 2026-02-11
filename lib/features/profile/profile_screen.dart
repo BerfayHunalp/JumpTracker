@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/auth/auth_providers.dart';
+import '../../core/auth/auth_state.dart';
 import '../../core/database/database.dart';
 import '../../shared/widgets/stat_card.dart';
+import '../auth/login_screen.dart';
 import '../jump_detail/jump_detail_screen.dart';
+import 'edit_profile_screen.dart';
 import 'profile_providers.dart';
+import 'widgets/avatar_widget.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -12,17 +17,20 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(profileStatsProvider);
     final bestAsync = ref.watch(bestJumpsProvider);
+    final authState = ref.watch(authStateProvider);
     final theme = Theme.of(context);
+
+    final isAuthenticated = authState is AuthAuthenticated;
+    final user = isAuthenticated ? authState.user : null;
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             pinned: true,
-            expandedHeight: 120,
+            expandedHeight: isAuthenticated ? 180 : 120,
             backgroundColor: theme.colorScheme.surface,
             flexibleSpace: FlexibleSpaceBar(
-              title: const Text('Profile'),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -34,9 +42,74 @@ class ProfileScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                child: SafeArea(
+                  child: isAuthenticated
+                      ? _UserHeader(user: user!)
+                      : const _GuestHeader(),
+                ),
               ),
             ),
+            actions: [
+              if (isAuthenticated)
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 20),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const EditProfileScreen()),
+                  ),
+                ),
+            ],
           ),
+
+          // Sign-in prompt for guests
+          if (!isAuthenticated)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: InkWell(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.cloud_upload,
+                            color: theme.colorScheme.primary),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Sign in to sync',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold)),
+                              Text(
+                                'Sync sessions and compete with friends',
+                                style: TextStyle(
+                                    color: Colors.white54, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, color: Colors.white24),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
           // Lifetime stats grid
           statsAsync.when(
@@ -166,14 +239,35 @@ class ProfileScreen extends ConsumerWidget {
                         onTap: () => _goToJump(context, best.bestScore!.id),
                       ),
                     ],
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                   ]),
                 ),
               );
             },
             loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-            error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            error: (_, __) =>
+                const SliverToBoxAdapter(child: SizedBox.shrink()),
           ),
+
+          // Sign out button
+          if (isAuthenticated)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextButton.icon(
+                  onPressed: () {
+                    ref.read(authStateProvider.notifier).signOut();
+                  },
+                  icon: const Icon(Icons.logout, color: Colors.white38),
+                  label: const Text(
+                    'Sign Out',
+                    style: TextStyle(color: Colors.white38),
+                  ),
+                ),
+              ),
+            ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
     );
@@ -187,8 +281,67 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   String _jumpScore(Jump j) {
-    final score = (j.airtimeMs / 100) * 40 + j.heightM * 30 + j.distanceM * 10;
+    final score =
+        (j.airtimeMs / 100) * 40 + j.heightM * 30 + j.distanceM * 10;
     return score.toStringAsFixed(0);
+  }
+}
+
+class _UserHeader extends StatelessWidget {
+  final dynamic user;
+  const _UserHeader({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 48),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AvatarWidget(avatarIndex: user.avatarIndex, size: 64),
+          const SizedBox(height: 12),
+          Text(
+            user.nickname,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            user.email ?? '',
+            style: const TextStyle(fontSize: 13, color: Colors.white38),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuestHeader extends StatelessWidget {
+  const _GuestHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.only(top: 56),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.person_outline, size: 48, color: Colors.white30),
+          SizedBox(height: 8),
+          Text(
+            'Profile',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

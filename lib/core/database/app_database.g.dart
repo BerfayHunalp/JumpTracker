@@ -55,6 +55,12 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
       type: DriftSqlType.double,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _syncedAtMeta =
+      const VerificationMeta('syncedAt');
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+      'synced_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -63,7 +69,8 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
         resortName,
         totalJumps,
         maxAirtimeMs,
-        totalVerticalM
+        totalVerticalM,
+        syncedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -114,6 +121,10 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
           totalVerticalM.isAcceptableOrUnknown(
               data['total_vertical_m']!, _totalVerticalMMeta));
     }
+    if (data.containsKey('synced_at')) {
+      context.handle(_syncedAtMeta,
+          syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta));
+    }
     return context;
   }
 
@@ -137,6 +148,8 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
           .read(DriftSqlType.double, data['${effectivePrefix}max_airtime_ms'])!,
       totalVerticalM: attachedDatabase.typeMapping.read(
           DriftSqlType.double, data['${effectivePrefix}total_vertical_m'])!,
+      syncedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}synced_at']),
     );
   }
 
@@ -154,6 +167,7 @@ class Session extends DataClass implements Insertable<Session> {
   final int totalJumps;
   final double maxAirtimeMs;
   final double totalVerticalM;
+  final DateTime? syncedAt;
   const Session(
       {required this.id,
       required this.startedAt,
@@ -161,7 +175,8 @@ class Session extends DataClass implements Insertable<Session> {
       this.resortName,
       required this.totalJumps,
       required this.maxAirtimeMs,
-      required this.totalVerticalM});
+      required this.totalVerticalM,
+      this.syncedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -176,6 +191,9 @@ class Session extends DataClass implements Insertable<Session> {
     map['total_jumps'] = Variable<int>(totalJumps);
     map['max_airtime_ms'] = Variable<double>(maxAirtimeMs);
     map['total_vertical_m'] = Variable<double>(totalVerticalM);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
     return map;
   }
 
@@ -192,6 +210,9 @@ class Session extends DataClass implements Insertable<Session> {
       totalJumps: Value(totalJumps),
       maxAirtimeMs: Value(maxAirtimeMs),
       totalVerticalM: Value(totalVerticalM),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
     );
   }
 
@@ -206,6 +227,7 @@ class Session extends DataClass implements Insertable<Session> {
       totalJumps: serializer.fromJson<int>(json['totalJumps']),
       maxAirtimeMs: serializer.fromJson<double>(json['maxAirtimeMs']),
       totalVerticalM: serializer.fromJson<double>(json['totalVerticalM']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
     );
   }
   @override
@@ -219,6 +241,7 @@ class Session extends DataClass implements Insertable<Session> {
       'totalJumps': serializer.toJson<int>(totalJumps),
       'maxAirtimeMs': serializer.toJson<double>(maxAirtimeMs),
       'totalVerticalM': serializer.toJson<double>(totalVerticalM),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
     };
   }
 
@@ -229,7 +252,8 @@ class Session extends DataClass implements Insertable<Session> {
           Value<String?> resortName = const Value.absent(),
           int? totalJumps,
           double? maxAirtimeMs,
-          double? totalVerticalM}) =>
+          double? totalVerticalM,
+          Value<DateTime?> syncedAt = const Value.absent()}) =>
       Session(
         id: id ?? this.id,
         startedAt: startedAt ?? this.startedAt,
@@ -238,6 +262,7 @@ class Session extends DataClass implements Insertable<Session> {
         totalJumps: totalJumps ?? this.totalJumps,
         maxAirtimeMs: maxAirtimeMs ?? this.maxAirtimeMs,
         totalVerticalM: totalVerticalM ?? this.totalVerticalM,
+        syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
       );
   Session copyWithCompanion(SessionsCompanion data) {
     return Session(
@@ -254,6 +279,7 @@ class Session extends DataClass implements Insertable<Session> {
       totalVerticalM: data.totalVerticalM.present
           ? data.totalVerticalM.value
           : this.totalVerticalM,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
     );
   }
 
@@ -266,14 +292,15 @@ class Session extends DataClass implements Insertable<Session> {
           ..write('resortName: $resortName, ')
           ..write('totalJumps: $totalJumps, ')
           ..write('maxAirtimeMs: $maxAirtimeMs, ')
-          ..write('totalVerticalM: $totalVerticalM')
+          ..write('totalVerticalM: $totalVerticalM, ')
+          ..write('syncedAt: $syncedAt')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, startedAt, endedAt, resortName,
-      totalJumps, maxAirtimeMs, totalVerticalM);
+      totalJumps, maxAirtimeMs, totalVerticalM, syncedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -284,7 +311,8 @@ class Session extends DataClass implements Insertable<Session> {
           other.resortName == this.resortName &&
           other.totalJumps == this.totalJumps &&
           other.maxAirtimeMs == this.maxAirtimeMs &&
-          other.totalVerticalM == this.totalVerticalM);
+          other.totalVerticalM == this.totalVerticalM &&
+          other.syncedAt == this.syncedAt);
 }
 
 class SessionsCompanion extends UpdateCompanion<Session> {
@@ -295,6 +323,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
   final Value<int> totalJumps;
   final Value<double> maxAirtimeMs;
   final Value<double> totalVerticalM;
+  final Value<DateTime?> syncedAt;
   final Value<int> rowid;
   const SessionsCompanion({
     this.id = const Value.absent(),
@@ -304,6 +333,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     this.totalJumps = const Value.absent(),
     this.maxAirtimeMs = const Value.absent(),
     this.totalVerticalM = const Value.absent(),
+    this.syncedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SessionsCompanion.insert({
@@ -314,6 +344,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     this.totalJumps = const Value.absent(),
     this.maxAirtimeMs = const Value.absent(),
     this.totalVerticalM = const Value.absent(),
+    this.syncedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         startedAt = Value(startedAt);
@@ -325,6 +356,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     Expression<int>? totalJumps,
     Expression<double>? maxAirtimeMs,
     Expression<double>? totalVerticalM,
+    Expression<DateTime>? syncedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -335,6 +367,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
       if (totalJumps != null) 'total_jumps': totalJumps,
       if (maxAirtimeMs != null) 'max_airtime_ms': maxAirtimeMs,
       if (totalVerticalM != null) 'total_vertical_m': totalVerticalM,
+      if (syncedAt != null) 'synced_at': syncedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -347,6 +380,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
       Value<int>? totalJumps,
       Value<double>? maxAirtimeMs,
       Value<double>? totalVerticalM,
+      Value<DateTime?>? syncedAt,
       Value<int>? rowid}) {
     return SessionsCompanion(
       id: id ?? this.id,
@@ -356,6 +390,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
       totalJumps: totalJumps ?? this.totalJumps,
       maxAirtimeMs: maxAirtimeMs ?? this.maxAirtimeMs,
       totalVerticalM: totalVerticalM ?? this.totalVerticalM,
+      syncedAt: syncedAt ?? this.syncedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -384,6 +419,9 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     if (totalVerticalM.present) {
       map['total_vertical_m'] = Variable<double>(totalVerticalM.value);
     }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -400,6 +438,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
           ..write('totalJumps: $totalJumps, ')
           ..write('maxAirtimeMs: $maxAirtimeMs, ')
           ..write('totalVerticalM: $totalVerticalM, ')
+          ..write('syncedAt: $syncedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2149,6 +2188,7 @@ typedef $$SessionsTableCreateCompanionBuilder = SessionsCompanion Function({
   Value<int> totalJumps,
   Value<double> maxAirtimeMs,
   Value<double> totalVerticalM,
+  Value<DateTime?> syncedAt,
   Value<int> rowid,
 });
 typedef $$SessionsTableUpdateCompanionBuilder = SessionsCompanion Function({
@@ -2159,104 +2199,9 @@ typedef $$SessionsTableUpdateCompanionBuilder = SessionsCompanion Function({
   Value<int> totalJumps,
   Value<double> maxAirtimeMs,
   Value<double> totalVerticalM,
+  Value<DateTime?> syncedAt,
   Value<int> rowid,
 });
-
-class $$SessionsTableFilterComposer
-    extends Composer<_$AppDatabase, $SessionsTable> {
-  $$SessionsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get startedAt => $composableBuilder(
-      column: $table.startedAt, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get endedAt => $composableBuilder(
-      column: $table.endedAt, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get resortName => $composableBuilder(
-      column: $table.resortName, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get totalJumps => $composableBuilder(
-      column: $table.totalJumps, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get maxAirtimeMs => $composableBuilder(
-      column: $table.maxAirtimeMs, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get totalVerticalM => $composableBuilder(
-      column: $table.totalVerticalM,
-      builder: (column) => ColumnFilters(column));
-}
-
-class $$SessionsTableOrderingComposer
-    extends Composer<_$AppDatabase, $SessionsTable> {
-  $$SessionsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
-      column: $table.startedAt, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get endedAt => $composableBuilder(
-      column: $table.endedAt, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get resortName => $composableBuilder(
-      column: $table.resortName, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get totalJumps => $composableBuilder(
-      column: $table.totalJumps, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get maxAirtimeMs => $composableBuilder(
-      column: $table.maxAirtimeMs,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get totalVerticalM => $composableBuilder(
-      column: $table.totalVerticalM,
-      builder: (column) => ColumnOrderings(column));
-}
-
-class $$SessionsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $SessionsTable> {
-  $$SessionsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get startedAt =>
-      $composableBuilder(column: $table.startedAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get endedAt =>
-      $composableBuilder(column: $table.endedAt, builder: (column) => column);
-
-  GeneratedColumn<String> get resortName => $composableBuilder(
-      column: $table.resortName, builder: (column) => column);
-
-  GeneratedColumn<int> get totalJumps => $composableBuilder(
-      column: $table.totalJumps, builder: (column) => column);
-
-  GeneratedColumn<double> get maxAirtimeMs => $composableBuilder(
-      column: $table.maxAirtimeMs, builder: (column) => column);
-
-  GeneratedColumn<double> get totalVerticalM => $composableBuilder(
-      column: $table.totalVerticalM, builder: (column) => column);
-}
 
 class $$SessionsTableTableManager extends RootTableManager<
     _$AppDatabase,
@@ -2264,22 +2209,16 @@ class $$SessionsTableTableManager extends RootTableManager<
     Session,
     $$SessionsTableFilterComposer,
     $$SessionsTableOrderingComposer,
-    $$SessionsTableAnnotationComposer,
     $$SessionsTableCreateCompanionBuilder,
-    $$SessionsTableUpdateCompanionBuilder,
-    (Session, BaseReferences<_$AppDatabase, $SessionsTable, Session>),
-    Session,
-    PrefetchHooks Function()> {
+    $$SessionsTableUpdateCompanionBuilder> {
   $$SessionsTableTableManager(_$AppDatabase db, $SessionsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () =>
-              $$SessionsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$SessionsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$SessionsTableAnnotationComposer($db: db, $table: table),
+          filteringComposer:
+              $$SessionsTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$SessionsTableOrderingComposer(ComposerState(db, table)),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<DateTime> startedAt = const Value.absent(),
@@ -2288,6 +2227,7 @@ class $$SessionsTableTableManager extends RootTableManager<
             Value<int> totalJumps = const Value.absent(),
             Value<double> maxAirtimeMs = const Value.absent(),
             Value<double> totalVerticalM = const Value.absent(),
+            Value<DateTime?> syncedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SessionsCompanion(
@@ -2298,6 +2238,7 @@ class $$SessionsTableTableManager extends RootTableManager<
             totalJumps: totalJumps,
             maxAirtimeMs: maxAirtimeMs,
             totalVerticalM: totalVerticalM,
+            syncedAt: syncedAt,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -2308,6 +2249,7 @@ class $$SessionsTableTableManager extends RootTableManager<
             Value<int> totalJumps = const Value.absent(),
             Value<double> maxAirtimeMs = const Value.absent(),
             Value<double> totalVerticalM = const Value.absent(),
+            Value<DateTime?> syncedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SessionsCompanion.insert(
@@ -2318,27 +2260,100 @@ class $$SessionsTableTableManager extends RootTableManager<
             totalJumps: totalJumps,
             maxAirtimeMs: maxAirtimeMs,
             totalVerticalM: totalVerticalM,
+            syncedAt: syncedAt,
             rowid: rowid,
           ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
         ));
 }
 
-typedef $$SessionsTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $SessionsTable,
-    Session,
-    $$SessionsTableFilterComposer,
-    $$SessionsTableOrderingComposer,
-    $$SessionsTableAnnotationComposer,
-    $$SessionsTableCreateCompanionBuilder,
-    $$SessionsTableUpdateCompanionBuilder,
-    (Session, BaseReferences<_$AppDatabase, $SessionsTable, Session>),
-    Session,
-    PrefetchHooks Function()>;
+class $$SessionsTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $SessionsTable> {
+  $$SessionsTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get startedAt => $state.composableBuilder(
+      column: $state.table.startedAt,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get endedAt => $state.composableBuilder(
+      column: $state.table.endedAt,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get resortName => $state.composableBuilder(
+      column: $state.table.resortName,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get totalJumps => $state.composableBuilder(
+      column: $state.table.totalJumps,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get maxAirtimeMs => $state.composableBuilder(
+      column: $state.table.maxAirtimeMs,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get totalVerticalM => $state.composableBuilder(
+      column: $state.table.totalVerticalM,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get syncedAt => $state.composableBuilder(
+      column: $state.table.syncedAt,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$SessionsTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $SessionsTable> {
+  $$SessionsTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get startedAt => $state.composableBuilder(
+      column: $state.table.startedAt,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get endedAt => $state.composableBuilder(
+      column: $state.table.endedAt,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get resortName => $state.composableBuilder(
+      column: $state.table.resortName,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get totalJumps => $state.composableBuilder(
+      column: $state.table.totalJumps,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get maxAirtimeMs => $state.composableBuilder(
+      column: $state.table.maxAirtimeMs,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get totalVerticalM => $state.composableBuilder(
+      column: $state.table.totalVerticalM,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get syncedAt => $state.composableBuilder(
+      column: $state.table.syncedAt,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
 typedef $$JumpsTableCreateCompanionBuilder = JumpsCompanion Function({
   required String id,
   required String sessionId,
@@ -2376,199 +2391,22 @@ typedef $$JumpsTableUpdateCompanionBuilder = JumpsCompanion Function({
   Value<int> rowid,
 });
 
-class $$JumpsTableFilterComposer extends Composer<_$AppDatabase, $JumpsTable> {
-  $$JumpsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get sessionId => $composableBuilder(
-      column: $table.sessionId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get runId => $composableBuilder(
-      column: $table.runId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get takeoffTimestampUs => $composableBuilder(
-      column: $table.takeoffTimestampUs,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get landingTimestampUs => $composableBuilder(
-      column: $table.landingTimestampUs,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get airtimeMs => $composableBuilder(
-      column: $table.airtimeMs, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get distanceM => $composableBuilder(
-      column: $table.distanceM, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get heightM => $composableBuilder(
-      column: $table.heightM, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get speedKmh => $composableBuilder(
-      column: $table.speedKmh, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get landingGForce => $composableBuilder(
-      column: $table.landingGForce, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get latTakeoff => $composableBuilder(
-      column: $table.latTakeoff, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get lonTakeoff => $composableBuilder(
-      column: $table.lonTakeoff, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get latLanding => $composableBuilder(
-      column: $table.latLanding, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get lonLanding => $composableBuilder(
-      column: $table.lonLanding, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get altitudeTakeoff => $composableBuilder(
-      column: $table.altitudeTakeoff,
-      builder: (column) => ColumnFilters(column));
-}
-
-class $$JumpsTableOrderingComposer
-    extends Composer<_$AppDatabase, $JumpsTable> {
-  $$JumpsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get sessionId => $composableBuilder(
-      column: $table.sessionId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get runId => $composableBuilder(
-      column: $table.runId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get takeoffTimestampUs => $composableBuilder(
-      column: $table.takeoffTimestampUs,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get landingTimestampUs => $composableBuilder(
-      column: $table.landingTimestampUs,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get airtimeMs => $composableBuilder(
-      column: $table.airtimeMs, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get distanceM => $composableBuilder(
-      column: $table.distanceM, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get heightM => $composableBuilder(
-      column: $table.heightM, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get speedKmh => $composableBuilder(
-      column: $table.speedKmh, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get landingGForce => $composableBuilder(
-      column: $table.landingGForce,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get latTakeoff => $composableBuilder(
-      column: $table.latTakeoff, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get lonTakeoff => $composableBuilder(
-      column: $table.lonTakeoff, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get latLanding => $composableBuilder(
-      column: $table.latLanding, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get lonLanding => $composableBuilder(
-      column: $table.lonLanding, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get altitudeTakeoff => $composableBuilder(
-      column: $table.altitudeTakeoff,
-      builder: (column) => ColumnOrderings(column));
-}
-
-class $$JumpsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $JumpsTable> {
-  $$JumpsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get sessionId =>
-      $composableBuilder(column: $table.sessionId, builder: (column) => column);
-
-  GeneratedColumn<String> get runId =>
-      $composableBuilder(column: $table.runId, builder: (column) => column);
-
-  GeneratedColumn<int> get takeoffTimestampUs => $composableBuilder(
-      column: $table.takeoffTimestampUs, builder: (column) => column);
-
-  GeneratedColumn<int> get landingTimestampUs => $composableBuilder(
-      column: $table.landingTimestampUs, builder: (column) => column);
-
-  GeneratedColumn<double> get airtimeMs =>
-      $composableBuilder(column: $table.airtimeMs, builder: (column) => column);
-
-  GeneratedColumn<double> get distanceM =>
-      $composableBuilder(column: $table.distanceM, builder: (column) => column);
-
-  GeneratedColumn<double> get heightM =>
-      $composableBuilder(column: $table.heightM, builder: (column) => column);
-
-  GeneratedColumn<double> get speedKmh =>
-      $composableBuilder(column: $table.speedKmh, builder: (column) => column);
-
-  GeneratedColumn<double> get landingGForce => $composableBuilder(
-      column: $table.landingGForce, builder: (column) => column);
-
-  GeneratedColumn<double> get latTakeoff => $composableBuilder(
-      column: $table.latTakeoff, builder: (column) => column);
-
-  GeneratedColumn<double> get lonTakeoff => $composableBuilder(
-      column: $table.lonTakeoff, builder: (column) => column);
-
-  GeneratedColumn<double> get latLanding => $composableBuilder(
-      column: $table.latLanding, builder: (column) => column);
-
-  GeneratedColumn<double> get lonLanding => $composableBuilder(
-      column: $table.lonLanding, builder: (column) => column);
-
-  GeneratedColumn<double> get altitudeTakeoff => $composableBuilder(
-      column: $table.altitudeTakeoff, builder: (column) => column);
-}
-
 class $$JumpsTableTableManager extends RootTableManager<
     _$AppDatabase,
     $JumpsTable,
     Jump,
     $$JumpsTableFilterComposer,
     $$JumpsTableOrderingComposer,
-    $$JumpsTableAnnotationComposer,
     $$JumpsTableCreateCompanionBuilder,
-    $$JumpsTableUpdateCompanionBuilder,
-    (Jump, BaseReferences<_$AppDatabase, $JumpsTable, Jump>),
-    Jump,
-    PrefetchHooks Function()> {
+    $$JumpsTableUpdateCompanionBuilder> {
   $$JumpsTableTableManager(_$AppDatabase db, $JumpsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () =>
-              $$JumpsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$JumpsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$JumpsTableAnnotationComposer($db: db, $table: table),
+          filteringComposer:
+              $$JumpsTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$JumpsTableOrderingComposer(ComposerState(db, table)),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> sessionId = const Value.absent(),
@@ -2641,25 +2479,167 @@ class $$JumpsTableTableManager extends RootTableManager<
             altitudeTakeoff: altitudeTakeoff,
             rowid: rowid,
           ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
         ));
 }
 
-typedef $$JumpsTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $JumpsTable,
-    Jump,
-    $$JumpsTableFilterComposer,
-    $$JumpsTableOrderingComposer,
-    $$JumpsTableAnnotationComposer,
-    $$JumpsTableCreateCompanionBuilder,
-    $$JumpsTableUpdateCompanionBuilder,
-    (Jump, BaseReferences<_$AppDatabase, $JumpsTable, Jump>),
-    Jump,
-    PrefetchHooks Function()>;
+class $$JumpsTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $JumpsTable> {
+  $$JumpsTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get sessionId => $state.composableBuilder(
+      column: $state.table.sessionId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get runId => $state.composableBuilder(
+      column: $state.table.runId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get takeoffTimestampUs => $state.composableBuilder(
+      column: $state.table.takeoffTimestampUs,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get landingTimestampUs => $state.composableBuilder(
+      column: $state.table.landingTimestampUs,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get airtimeMs => $state.composableBuilder(
+      column: $state.table.airtimeMs,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get distanceM => $state.composableBuilder(
+      column: $state.table.distanceM,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get heightM => $state.composableBuilder(
+      column: $state.table.heightM,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get speedKmh => $state.composableBuilder(
+      column: $state.table.speedKmh,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get landingGForce => $state.composableBuilder(
+      column: $state.table.landingGForce,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get latTakeoff => $state.composableBuilder(
+      column: $state.table.latTakeoff,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get lonTakeoff => $state.composableBuilder(
+      column: $state.table.lonTakeoff,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get latLanding => $state.composableBuilder(
+      column: $state.table.latLanding,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get lonLanding => $state.composableBuilder(
+      column: $state.table.lonLanding,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get altitudeTakeoff => $state.composableBuilder(
+      column: $state.table.altitudeTakeoff,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$JumpsTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $JumpsTable> {
+  $$JumpsTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get sessionId => $state.composableBuilder(
+      column: $state.table.sessionId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get runId => $state.composableBuilder(
+      column: $state.table.runId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get takeoffTimestampUs => $state.composableBuilder(
+      column: $state.table.takeoffTimestampUs,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get landingTimestampUs => $state.composableBuilder(
+      column: $state.table.landingTimestampUs,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get airtimeMs => $state.composableBuilder(
+      column: $state.table.airtimeMs,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get distanceM => $state.composableBuilder(
+      column: $state.table.distanceM,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get heightM => $state.composableBuilder(
+      column: $state.table.heightM,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get speedKmh => $state.composableBuilder(
+      column: $state.table.speedKmh,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get landingGForce => $state.composableBuilder(
+      column: $state.table.landingGForce,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get latTakeoff => $state.composableBuilder(
+      column: $state.table.latTakeoff,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get lonTakeoff => $state.composableBuilder(
+      column: $state.table.lonTakeoff,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get latLanding => $state.composableBuilder(
+      column: $state.table.latLanding,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get lonLanding => $state.composableBuilder(
+      column: $state.table.lonLanding,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get altitudeTakeoff => $state.composableBuilder(
+      column: $state.table.altitudeTakeoff,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
 typedef $$RunsTableCreateCompanionBuilder = RunsCompanion Function({
   required String id,
   required String sessionId,
@@ -2685,139 +2665,22 @@ typedef $$RunsTableUpdateCompanionBuilder = RunsCompanion Function({
   Value<int> rowid,
 });
 
-class $$RunsTableFilterComposer extends Composer<_$AppDatabase, $RunsTable> {
-  $$RunsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get sessionId => $composableBuilder(
-      column: $table.sessionId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get startAltitude => $composableBuilder(
-      column: $table.startAltitude, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get endAltitude => $composableBuilder(
-      column: $table.endAltitude, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get verticalDropM => $composableBuilder(
-      column: $table.verticalDropM, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get maxSpeedKmh => $composableBuilder(
-      column: $table.maxSpeedKmh, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get distanceM => $composableBuilder(
-      column: $table.distanceM, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get durationS => $composableBuilder(
-      column: $table.durationS, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<bool> get isLift => $composableBuilder(
-      column: $table.isLift, builder: (column) => ColumnFilters(column));
-}
-
-class $$RunsTableOrderingComposer extends Composer<_$AppDatabase, $RunsTable> {
-  $$RunsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get sessionId => $composableBuilder(
-      column: $table.sessionId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get startAltitude => $composableBuilder(
-      column: $table.startAltitude,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get endAltitude => $composableBuilder(
-      column: $table.endAltitude, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get verticalDropM => $composableBuilder(
-      column: $table.verticalDropM,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get maxSpeedKmh => $composableBuilder(
-      column: $table.maxSpeedKmh, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get distanceM => $composableBuilder(
-      column: $table.distanceM, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get durationS => $composableBuilder(
-      column: $table.durationS, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<bool> get isLift => $composableBuilder(
-      column: $table.isLift, builder: (column) => ColumnOrderings(column));
-}
-
-class $$RunsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $RunsTable> {
-  $$RunsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get sessionId =>
-      $composableBuilder(column: $table.sessionId, builder: (column) => column);
-
-  GeneratedColumn<double> get startAltitude => $composableBuilder(
-      column: $table.startAltitude, builder: (column) => column);
-
-  GeneratedColumn<double> get endAltitude => $composableBuilder(
-      column: $table.endAltitude, builder: (column) => column);
-
-  GeneratedColumn<double> get verticalDropM => $composableBuilder(
-      column: $table.verticalDropM, builder: (column) => column);
-
-  GeneratedColumn<double> get maxSpeedKmh => $composableBuilder(
-      column: $table.maxSpeedKmh, builder: (column) => column);
-
-  GeneratedColumn<double> get distanceM =>
-      $composableBuilder(column: $table.distanceM, builder: (column) => column);
-
-  GeneratedColumn<double> get durationS =>
-      $composableBuilder(column: $table.durationS, builder: (column) => column);
-
-  GeneratedColumn<bool> get isLift =>
-      $composableBuilder(column: $table.isLift, builder: (column) => column);
-}
-
 class $$RunsTableTableManager extends RootTableManager<
     _$AppDatabase,
     $RunsTable,
     Run,
     $$RunsTableFilterComposer,
     $$RunsTableOrderingComposer,
-    $$RunsTableAnnotationComposer,
     $$RunsTableCreateCompanionBuilder,
-    $$RunsTableUpdateCompanionBuilder,
-    (Run, BaseReferences<_$AppDatabase, $RunsTable, Run>),
-    Run,
-    PrefetchHooks Function()> {
+    $$RunsTableUpdateCompanionBuilder> {
   $$RunsTableTableManager(_$AppDatabase db, $RunsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () =>
-              $$RunsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$RunsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$RunsTableAnnotationComposer($db: db, $table: table),
+          filteringComposer:
+              $$RunsTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$RunsTableOrderingComposer(ComposerState(db, table)),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> sessionId = const Value.absent(),
@@ -2866,25 +2729,107 @@ class $$RunsTableTableManager extends RootTableManager<
             isLift: isLift,
             rowid: rowid,
           ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
         ));
 }
 
-typedef $$RunsTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $RunsTable,
-    Run,
-    $$RunsTableFilterComposer,
-    $$RunsTableOrderingComposer,
-    $$RunsTableAnnotationComposer,
-    $$RunsTableCreateCompanionBuilder,
-    $$RunsTableUpdateCompanionBuilder,
-    (Run, BaseReferences<_$AppDatabase, $RunsTable, Run>),
-    Run,
-    PrefetchHooks Function()>;
+class $$RunsTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $RunsTable> {
+  $$RunsTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get sessionId => $state.composableBuilder(
+      column: $state.table.sessionId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get startAltitude => $state.composableBuilder(
+      column: $state.table.startAltitude,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get endAltitude => $state.composableBuilder(
+      column: $state.table.endAltitude,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get verticalDropM => $state.composableBuilder(
+      column: $state.table.verticalDropM,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get maxSpeedKmh => $state.composableBuilder(
+      column: $state.table.maxSpeedKmh,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get distanceM => $state.composableBuilder(
+      column: $state.table.distanceM,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get durationS => $state.composableBuilder(
+      column: $state.table.durationS,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get isLift => $state.composableBuilder(
+      column: $state.table.isLift,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$RunsTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $RunsTable> {
+  $$RunsTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get sessionId => $state.composableBuilder(
+      column: $state.table.sessionId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get startAltitude => $state.composableBuilder(
+      column: $state.table.startAltitude,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get endAltitude => $state.composableBuilder(
+      column: $state.table.endAltitude,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get verticalDropM => $state.composableBuilder(
+      column: $state.table.verticalDropM,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get maxSpeedKmh => $state.composableBuilder(
+      column: $state.table.maxSpeedKmh,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get distanceM => $state.composableBuilder(
+      column: $state.table.distanceM,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get durationS => $state.composableBuilder(
+      column: $state.table.durationS,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get isLift => $state.composableBuilder(
+      column: $state.table.isLift,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
 typedef $$GpsPointsTableCreateCompanionBuilder = GpsPointsCompanion Function({
   Value<int> id,
   required String sessionId,
@@ -2910,148 +2855,22 @@ typedef $$GpsPointsTableUpdateCompanionBuilder = GpsPointsCompanion Function({
   Value<String?> runId,
 });
 
-class $$GpsPointsTableFilterComposer
-    extends Composer<_$AppDatabase, $GpsPointsTable> {
-  $$GpsPointsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get sessionId => $composableBuilder(
-      column: $table.sessionId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get timestampUs => $composableBuilder(
-      column: $table.timestampUs, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get latitude => $composableBuilder(
-      column: $table.latitude, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get longitude => $composableBuilder(
-      column: $table.longitude, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get altitude => $composableBuilder(
-      column: $table.altitude, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get speed => $composableBuilder(
-      column: $table.speed, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get bearing => $composableBuilder(
-      column: $table.bearing, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get accuracy => $composableBuilder(
-      column: $table.accuracy, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get runId => $composableBuilder(
-      column: $table.runId, builder: (column) => ColumnFilters(column));
-}
-
-class $$GpsPointsTableOrderingComposer
-    extends Composer<_$AppDatabase, $GpsPointsTable> {
-  $$GpsPointsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get sessionId => $composableBuilder(
-      column: $table.sessionId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get timestampUs => $composableBuilder(
-      column: $table.timestampUs, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get latitude => $composableBuilder(
-      column: $table.latitude, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get longitude => $composableBuilder(
-      column: $table.longitude, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get altitude => $composableBuilder(
-      column: $table.altitude, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get speed => $composableBuilder(
-      column: $table.speed, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get bearing => $composableBuilder(
-      column: $table.bearing, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get accuracy => $composableBuilder(
-      column: $table.accuracy, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get runId => $composableBuilder(
-      column: $table.runId, builder: (column) => ColumnOrderings(column));
-}
-
-class $$GpsPointsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $GpsPointsTable> {
-  $$GpsPointsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get sessionId =>
-      $composableBuilder(column: $table.sessionId, builder: (column) => column);
-
-  GeneratedColumn<int> get timestampUs => $composableBuilder(
-      column: $table.timestampUs, builder: (column) => column);
-
-  GeneratedColumn<double> get latitude =>
-      $composableBuilder(column: $table.latitude, builder: (column) => column);
-
-  GeneratedColumn<double> get longitude =>
-      $composableBuilder(column: $table.longitude, builder: (column) => column);
-
-  GeneratedColumn<double> get altitude =>
-      $composableBuilder(column: $table.altitude, builder: (column) => column);
-
-  GeneratedColumn<double> get speed =>
-      $composableBuilder(column: $table.speed, builder: (column) => column);
-
-  GeneratedColumn<double> get bearing =>
-      $composableBuilder(column: $table.bearing, builder: (column) => column);
-
-  GeneratedColumn<double> get accuracy =>
-      $composableBuilder(column: $table.accuracy, builder: (column) => column);
-
-  GeneratedColumn<String> get runId =>
-      $composableBuilder(column: $table.runId, builder: (column) => column);
-}
-
 class $$GpsPointsTableTableManager extends RootTableManager<
     _$AppDatabase,
     $GpsPointsTable,
     GpsPoint,
     $$GpsPointsTableFilterComposer,
     $$GpsPointsTableOrderingComposer,
-    $$GpsPointsTableAnnotationComposer,
     $$GpsPointsTableCreateCompanionBuilder,
-    $$GpsPointsTableUpdateCompanionBuilder,
-    (GpsPoint, BaseReferences<_$AppDatabase, $GpsPointsTable, GpsPoint>),
-    GpsPoint,
-    PrefetchHooks Function()> {
+    $$GpsPointsTableUpdateCompanionBuilder> {
   $$GpsPointsTableTableManager(_$AppDatabase db, $GpsPointsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () =>
-              $$GpsPointsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$GpsPointsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$GpsPointsTableAnnotationComposer($db: db, $table: table),
+          filteringComposer:
+              $$GpsPointsTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$GpsPointsTableOrderingComposer(ComposerState(db, table)),
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> sessionId = const Value.absent(),
@@ -3100,25 +2919,116 @@ class $$GpsPointsTableTableManager extends RootTableManager<
             accuracy: accuracy,
             runId: runId,
           ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
         ));
 }
 
-typedef $$GpsPointsTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $GpsPointsTable,
-    GpsPoint,
-    $$GpsPointsTableFilterComposer,
-    $$GpsPointsTableOrderingComposer,
-    $$GpsPointsTableAnnotationComposer,
-    $$GpsPointsTableCreateCompanionBuilder,
-    $$GpsPointsTableUpdateCompanionBuilder,
-    (GpsPoint, BaseReferences<_$AppDatabase, $GpsPointsTable, GpsPoint>),
-    GpsPoint,
-    PrefetchHooks Function()>;
+class $$GpsPointsTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $GpsPointsTable> {
+  $$GpsPointsTableFilterComposer(super.$state);
+  ColumnFilters<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get sessionId => $state.composableBuilder(
+      column: $state.table.sessionId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get timestampUs => $state.composableBuilder(
+      column: $state.table.timestampUs,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get latitude => $state.composableBuilder(
+      column: $state.table.latitude,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get longitude => $state.composableBuilder(
+      column: $state.table.longitude,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get altitude => $state.composableBuilder(
+      column: $state.table.altitude,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get speed => $state.composableBuilder(
+      column: $state.table.speed,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get bearing => $state.composableBuilder(
+      column: $state.table.bearing,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get accuracy => $state.composableBuilder(
+      column: $state.table.accuracy,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get runId => $state.composableBuilder(
+      column: $state.table.runId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$GpsPointsTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $GpsPointsTable> {
+  $$GpsPointsTableOrderingComposer(super.$state);
+  ColumnOrderings<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get sessionId => $state.composableBuilder(
+      column: $state.table.sessionId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get timestampUs => $state.composableBuilder(
+      column: $state.table.timestampUs,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get latitude => $state.composableBuilder(
+      column: $state.table.latitude,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get longitude => $state.composableBuilder(
+      column: $state.table.longitude,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get altitude => $state.composableBuilder(
+      column: $state.table.altitude,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get speed => $state.composableBuilder(
+      column: $state.table.speed,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get bearing => $state.composableBuilder(
+      column: $state.table.bearing,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get accuracy => $state.composableBuilder(
+      column: $state.table.accuracy,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get runId => $state.composableBuilder(
+      column: $state.table.runId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;

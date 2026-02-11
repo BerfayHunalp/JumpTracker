@@ -48,6 +48,22 @@ class SessionRepository {
         .getSingleOrNull();
   }
 
+  // ---- Sync ----
+
+  Future<List<Session>> getUnsyncedSessions() {
+    return (_db.select(_db.sessions)
+          ..where((s) =>
+              s.syncedAt.isNull() & s.endedAt.isNotNull())
+          ..orderBy([(s) => OrderingTerm.asc(s.startedAt)]))
+        .get();
+  }
+
+  Future<void> markSessionSynced(String id) {
+    return (_db.update(_db.sessions)..where((s) => s.id.equals(id))).write(
+      SessionsCompanion(syncedAt: Value(DateTime.now())),
+    );
+  }
+
   // ---- Aggregate stats ----
 
   Future<int> getTotalSessionCount() async {

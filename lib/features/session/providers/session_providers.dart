@@ -8,6 +8,8 @@ import '../../../core/detection/session_recorder.dart';
 import '../../../core/models/jump.dart' as model;
 import '../../../core/database/database.dart';
 import '../../../core/sensors/sensors.dart';
+import '../../../core/auth/auth_providers.dart';
+import '../../../core/sync/sync_service.dart';
 import 'sensor_simulator.dart';
 
 const _uuid = Uuid();
@@ -69,6 +71,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
   final SessionRepository _sessionRepo;
   final JumpRepository _jumpRepo;
   final GpsRepository _gpsRepo;
+  final SyncService? _syncService;
   final bool _useMock;
 
   late final SessionRecorder _recorder;
@@ -85,11 +88,13 @@ class SessionNotifier extends StateNotifier<SessionState> {
     required SessionRepository sessionRepo,
     required JumpRepository jumpRepo,
     required GpsRepository gpsRepo,
+    SyncService? syncService,
     required bool useMock,
   })  : _sensorSource = sensorSource,
         _sessionRepo = sessionRepo,
         _jumpRepo = jumpRepo,
         _gpsRepo = gpsRepo,
+        _syncService = syncService,
         _useMock = useMock,
         super(const SessionState()) {
     _recorder = SessionRecorder(
@@ -218,6 +223,9 @@ class SessionNotifier extends StateNotifier<SessionState> {
             .toList();
         await _gpsRepo.insertPoints(companions);
       }
+
+      // Trigger cloud sync (fire-and-forget)
+      _syncService?.syncPendingSessions();
     }
 
     state = state.copyWith(isRecording: false);
@@ -322,8 +330,21 @@ final sessionProvider =
     sessionRepo: ref.watch(sessionRepositoryProvider),
     jumpRepo: ref.watch(jumpRepositoryProvider),
     gpsRepo: ref.watch(gpsRepositoryProvider),
+    syncService: ref.watch(_syncServiceProvider),
     useMock: ref.watch(useMockSensorsProvider),
   );
+});
+
+final _syncServiceProvider = Provider<SyncService?>((ref) {
+  try {
+    return SyncService(
+      ref.watch(apiClientProvider),
+      ref.watch(sessionRepositoryProvider),
+      ref.watch(jumpRepositoryProvider),
+    );
+  } catch (_) {
+    return null;
+  }
 });
 
 final isRecordingProvider = Provider<bool>((ref) {

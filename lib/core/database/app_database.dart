@@ -17,6 +17,7 @@ class Sessions extends Table {
   IntColumn get totalJumps => integer().withDefault(const Constant(0))();
   RealColumn get maxAirtimeMs => real().withDefault(const Constant(0))();
   RealColumn get totalVerticalM => real().withDefault(const Constant(0))();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -83,5 +84,14 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (migrator, from, to) async {
+          if (from < 2) {
+            await migrator.addColumn(sessions, sessions.syncedAt);
+          }
+        },
+      );
 }

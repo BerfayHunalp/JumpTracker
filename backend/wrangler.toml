@@ -1,0 +1,16 @@
+name = "ski-tracker-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ski-tracker-db"
+database_id = "placeholder-create-with-wrangler-d1-create"
+
+[vars]
+GOOGLE_CLIENT_ID = "placeholder-google-client-id"
+APPLE_BUNDLE_ID = "com.example.skiTracker"
+INVITE_BASE_URL = "https://ski-tracker.example.com/invite"
+
+# Secrets (added via `wrangler secret put`):
+# JWT_SECRET
