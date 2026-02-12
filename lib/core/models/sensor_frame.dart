@@ -57,8 +57,8 @@ class SensorFrame {
   /// Duration in microseconds from another frame to this one.
   int deltaUs(SensorFrame other) => timestampUs - other.timestampUs;
 
-  /// Duration in milliseconds from another frame to this one.
-  double deltaMs(SensorFrame other) => deltaUs(other) / 1000.0;
+  /// Duration in milliseconds from another frame to this one (integer).
+  int deltaMs(SensorFrame other) => deltaUs(other) ~/ 1000;
 
   @override
   String toString() =>

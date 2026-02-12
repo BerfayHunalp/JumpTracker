@@ -198,7 +198,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
     if (_currentSessionId != null) {
       final jumps = _recorder.jumps;
       final maxAirtime =
-          jumps.isEmpty ? 0.0 : jumps.map((j) => j.airtimeMs).reduce(max);
+          jumps.isEmpty ? 0.0 : jumps.map((j) => j.airtimeMs.toDouble()).reduce(max);
 
       await _sessionRepo.finishSession(
         id: _currentSessionId!,

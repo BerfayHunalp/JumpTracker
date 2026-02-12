@@ -105,7 +105,7 @@ class _JumpTile extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  '${jump.airtimeMs.toStringAsFixed(0)}ms',
+                  '${jump.airtimeMs}ms',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

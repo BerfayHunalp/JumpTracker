@@ -10,7 +10,7 @@ class Jump {
   final int landingTimestampUs;
 
   /// Airtime in milliseconds
-  final double airtimeMs;
+  final int airtimeMs;
 
   /// Horizontal distance covered during the jump (meters)
   final double distanceM;
@@ -61,7 +61,7 @@ class Jump {
 
   @override
   String toString() =>
-      'Jump(airtime=${airtimeMs.toStringAsFixed(0)}ms, '
+      'Jump(airtime=${airtimeMs}ms, '
       'dist=${distanceM.toStringAsFixed(1)}m, '
       'height=${heightM.toStringAsFixed(1)}m, '
       'speed=${speedKmh.toStringAsFixed(1)}km/h, '

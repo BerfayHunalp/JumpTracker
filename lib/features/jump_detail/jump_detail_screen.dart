@@ -57,7 +57,7 @@ class JumpDetailScreen extends ConsumerWidget {
                         children: [
                           const SizedBox(height: 24),
                           Text(
-                            '${jump.airtimeMs.toStringAsFixed(0)}ms',
+                            '${jump.airtimeMs}ms',
                             style: const TextStyle(
                               fontSize: 52,
                               fontWeight: FontWeight.bold,
@@ -100,7 +100,7 @@ class JumpDetailScreen extends ConsumerWidget {
                   ),
                   delegate: SliverChildListDelegate([
                     _MetricTile(
-                        'Airtime', '${jump.airtimeMs.toStringAsFixed(0)}ms',
+                        'Airtime', '${jump.airtimeMs}ms',
                         icon: Icons.timer),
                     _MetricTile(
                         'Height', '${jump.heightM.toStringAsFixed(1)}m',

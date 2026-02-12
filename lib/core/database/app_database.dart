@@ -29,7 +29,7 @@ class Jumps extends Table {
   TextColumn get runId => text()();
   IntColumn get takeoffTimestampUs => integer()();
   IntColumn get landingTimestampUs => integer()();
-  RealColumn get airtimeMs => real()();
+  IntColumn get airtimeMs => integer()();
   RealColumn get distanceM => real()();
   RealColumn get heightM => real()();
   RealColumn get speedKmh => real()();
@@ -85,7 +85,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -95,6 +95,19 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 3) {
             await migrator.addColumn(jumps, jumps.trickLabel);
+          }
+          if (from < 4) {
+            // airtimeMs changed from real to integer
+            await customStatement(
+              'CREATE TABLE jumps_new AS SELECT id, session_id, run_id, '
+              'takeoff_timestamp_us, landing_timestamp_us, '
+              'CAST(airtime_ms AS INTEGER) AS airtime_ms, '
+              'distance_m, height_m, speed_kmh, landing_g_force, '
+              'lat_takeoff, lon_takeoff, lat_landing, lon_landing, '
+              'altitude_takeoff, trick_label FROM jumps',
+            );
+            await customStatement('DROP TABLE jumps');
+            await customStatement('ALTER TABLE jumps_new RENAME TO jumps');
           }
         },
       );

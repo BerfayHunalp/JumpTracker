@@ -1,10 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../permissions/permission_screen.dart';
 import '../label_jumps_screen.dart';
 import '../providers/session_providers.dart';
 
+/// Whether the permission onboarding has been completed.
+final _permsDoneProvider = StateProvider<bool>((ref) => false);
+
 class SessionControlButton extends ConsumerWidget {
   const SessionControlButton({super.key});
+
+  Future<void> _startRecording(BuildContext context, WidgetRef ref) async {
+    // Check if permission onboarding was done
+    final permsDone = ref.read(_permsDoneProvider);
+    if (!permsDone) {
+      final prefs = await SharedPreferences.getInstance();
+      final done = prefs.getBool('permissions_onboarded') ?? false;
+      if (!done) {
+        if (!context.mounted) return;
+        final result = await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(builder: (_) => const PermissionScreen()),
+        );
+        if (result == true) {
+          await prefs.setBool('permissions_onboarded', true);
+        }
+      }
+      ref.read(_permsDoneProvider.notifier).state = true;
+    }
+
+    ref.read(sessionProvider.notifier).toggleRecording();
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,7 +61,7 @@ class SessionControlButton extends ConsumerWidget {
                 );
               }
             } else {
-              notifier.toggleRecording();
+              _startRecording(context, ref);
             }
           },
           child: AnimatedContainer(

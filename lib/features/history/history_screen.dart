@@ -145,7 +145,7 @@ class _SessionCard extends StatelessWidget {
                   _stat(
                     Icons.trending_up,
                     session.maxAirtimeMs > 0
-                        ? '${session.maxAirtimeMs.toStringAsFixed(0)}ms'
+                        ? '${session.maxAirtimeMs.toInt()}ms'
                         : '-',
                     'Max Air',
                   ),

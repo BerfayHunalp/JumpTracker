@@ -15,6 +15,12 @@ export async function handleAuth(
   if (path === '/auth/apple' && request.method === 'POST') {
     return handleAppleAuth(request, env);
   }
+  if (path === '/auth/register' && request.method === 'POST') {
+    return handleEmailRegister(request, env);
+  }
+  if (path === '/auth/login' && request.method === 'POST') {
+    return handleEmailLogin(request, env);
+  }
   if (path === '/auth/refresh' && request.method === 'POST') {
     return handleRefresh(request, env);
   }
@@ -151,6 +157,78 @@ async function upsertUserAndRespond(
 
   const token = await signJwt(userId, email, env.JWT_SECRET);
   return json({ token, user: formatUser(newUser!), isNewUser: true });
+}
+
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits'],
+  );
+  const derived = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, 256,
+  );
+  const hashBytes = new Uint8Array(derived);
+  const saltHex = Array.from(salt, b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = Array.from(hashBytes, b => b.toString(16).padStart(2, '0')).join('');
+  return `${saltHex}:${hashHex}`;
+}
+
+async function verifyPassword(password: string, stored: string): Promise<boolean> {
+  const [saltHex, hashHex] = stored.split(':');
+  const salt = new Uint8Array(saltHex.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits'],
+  );
+  const derived = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, 256,
+  );
+  const computedHex = Array.from(new Uint8Array(derived), b => b.toString(16).padStart(2, '0')).join('');
+  return computedHex === hashHex;
+}
+
+async function handleEmailRegister(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json()) as { email?: string; password?: string; nickname?: string };
+  if (!body.email || !body.password) return error('Email and password are required');
+  if (body.password.length < 6) return error('Password must be at least 6 characters');
+
+  const email = body.email.toLowerCase().trim();
+
+  // Check if email already exists
+  const existing = await env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
+  if (existing) return error('An account with this email already exists', 409);
+
+  const userId = crypto.randomUUID();
+  const nickname = body.nickname || email.split('@')[0];
+  const passwordHash = await hashPassword(body.password);
+
+  await env.DB.prepare(
+    'INSERT INTO users (id, email, nickname, password_hash) VALUES (?, ?, ?, ?)',
+  ).bind(userId, email, nickname, passwordHash).run();
+
+  const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
+  const token = await signJwt(userId, email, env.JWT_SECRET);
+
+  return json({ token, user: formatUser(user!), isNewUser: true });
+}
+
+async function handleEmailLogin(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json()) as { email?: string; password?: string };
+  if (!body.email || !body.password) return error('Email and password are required');
+
+  const email = body.email.toLowerCase().trim();
+
+  const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
+  if (!user || !user.password_hash) return error('Invalid email or password', 401);
+
+  const valid = await verifyPassword(body.password, user.password_hash as string);
+  if (!valid) return error('Invalid email or password', 401);
+
+  const token = await signJwt(user.id as string, email, env.JWT_SECRET);
+  return json({ token, user: formatUser(user), isNewUser: false });
 }
 
 function formatUser(row: Record<string, unknown>) {

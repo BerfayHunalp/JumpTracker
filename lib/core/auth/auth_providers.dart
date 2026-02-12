@@ -74,6 +74,33 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<void> registerWithEmail(String email, String password, String nickname) async {
+    state = const AuthLoading();
+    try {
+      final result = await _authService.registerWithEmail(email, password, nickname);
+      state = AuthAuthenticated(
+        user: result.user,
+        token: result.token,
+        isNewUser: result.isNewUser,
+      );
+    } catch (e) {
+      state = AuthError(e.toString());
+    }
+  }
+
+  Future<void> signInWithEmail(String email, String password) async {
+    state = const AuthLoading();
+    try {
+      final result = await _authService.signInWithEmail(email, password);
+      state = AuthAuthenticated(
+        user: result.user,
+        token: result.token,
+      );
+    } catch (e) {
+      state = AuthError(e.toString());
+    }
+  }
+
   Future<void> signOut() async {
     await _authService.signOut();
     state = const AuthUnauthenticated();

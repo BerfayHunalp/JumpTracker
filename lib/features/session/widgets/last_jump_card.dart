@@ -100,7 +100,7 @@ class _JumpMetrics extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       child: Row(
         children: [
-          _metric('${jump.airtimeMs.toStringAsFixed(0)}ms', 'Airtime'),
+          _metric('${jump.airtimeMs}ms', 'Airtime'),
           _metric('${jump.heightM.toStringAsFixed(1)}m', 'Height'),
           _metric('${jump.distanceM.toStringAsFixed(1)}m', 'Distance'),
           _metric('${jump.landingGForce.toStringAsFixed(1)}G', 'Landing'),

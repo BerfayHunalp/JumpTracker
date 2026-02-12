@@ -49,7 +49,10 @@ class AuthService {
 
   /// Sign in with Google.
   Future<AuthResult> signInWithGoogle() async {
-    final googleSignIn = GoogleSignIn(scopes: ['email']);
+    final googleSignIn = GoogleSignIn(
+      scopes: ['email'],
+      serverClientId: '350271156284-cc9t9s71dbod6meu4asi9pst0dg4qj2o.apps.googleusercontent.com',
+    );
     final account = await googleSignIn.signIn();
     if (account == null) throw Exception('Google sign-in cancelled');
 
@@ -90,6 +93,32 @@ class AuthService {
     final user = AppUser.fromJson(data['user'] as Map<String, dynamic>);
     final isNewUser = data['isNewUser'] as bool? ?? false;
     return AuthResult(user: user, token: token, isNewUser: isNewUser);
+  }
+
+  /// Register with email and password.
+  Future<AuthResult> registerWithEmail(String email, String password, String nickname) async {
+    final data = await _api.post('/auth/register', body: {
+      'email': email,
+      'password': password,
+      'nickname': nickname,
+    });
+    final token = data['token'] as String;
+    await _api.setToken(token);
+    final user = AppUser.fromJson(data['user'] as Map<String, dynamic>);
+    final isNewUser = data['isNewUser'] as bool? ?? true;
+    return AuthResult(user: user, token: token, isNewUser: isNewUser);
+  }
+
+  /// Sign in with email and password.
+  Future<AuthResult> signInWithEmail(String email, String password) async {
+    final data = await _api.post('/auth/login', body: {
+      'email': email,
+      'password': password,
+    });
+    final token = data['token'] as String;
+    await _api.setToken(token);
+    final user = AppUser.fromJson(data['user'] as Map<String, dynamic>);
+    return AuthResult(user: user, token: token, isNewUser: false);
   }
 
   /// Sign out.

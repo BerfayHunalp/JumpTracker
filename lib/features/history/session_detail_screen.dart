@@ -72,7 +72,7 @@ class SessionDetailScreen extends ConsumerWidget {
                         child: StatCard(
                           icon: Icons.trending_up,
                           value: s.maxAirtimeMs > 0
-                              ? '${s.maxAirtimeMs.toStringAsFixed(0)}ms'
+                              ? '${s.maxAirtimeMs.toInt()}ms'
                               : '-',
                           label: 'Max Air',
                         ),
@@ -284,7 +284,7 @@ class _JumpTile extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '${jump.airtimeMs.toStringAsFixed(0)}ms',
+                      '${jump.airtimeMs}ms',
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, color: Colors.white),
                     ),

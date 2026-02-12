@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geolocator_android/geolocator_android.dart' as geo_android;
 
 /// Real hardware sensor service that mirrors the SensorSimulator API.
 /// Provides accelerometer, GPS, and barometer data from device sensors.
@@ -46,6 +48,15 @@ class SensorService {
       throw Exception('Location permission permanently denied');
     }
 
+    // Request background location (Android 10+)
+    if (permission == LocationPermission.whileInUse) {
+      final bgPermission = await Geolocator.requestPermission();
+      // If they still only grant whileInUse, that's ok — we'll work with it
+      if (bgPermission == LocationPermission.always) {
+        permission = bgPermission;
+      }
+    }
+
     // ---- Accelerometer (~100Hz) ----
     _accelSub = accelerometerEventStream(
       samplingPeriod: const Duration(milliseconds: 10),
@@ -57,11 +68,25 @@ class SensorService {
       onAccel?.call(now, event.x, event.y, event.z);
     });
 
-    // ---- GPS position stream ----
-    const locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 3,
-    );
+    // ---- GPS position stream (with foreground service for background tracking) ----
+    final LocationSettings locationSettings;
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      locationSettings = geo_android.AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 3,
+        forceLocationManager: false,
+        foregroundNotificationConfig: const geo_android.ForegroundNotificationConfig(
+          notificationText: 'Ski Tracker is recording your session',
+          notificationTitle: 'Recording session',
+          enableWakeLock: true,
+        ),
+      );
+    } else {
+      locationSettings = const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 3,
+      );
+    }
     _gpsSub = Geolocator.getPositionStream(locationSettings: locationSettings)
         .listen((position) {
       final now = DateTime.now().microsecondsSinceEpoch;

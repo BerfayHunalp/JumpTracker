@@ -4,8 +4,7 @@ import 'package:http/http.dart' as http;
 import 'api_exceptions.dart';
 
 class ApiClient {
-  // TODO: Replace with your actual Cloudflare Worker URL
-  static const _baseUrl = 'https://ski-tracker-api.your-subdomain.workers.dev';
+  static const _baseUrl = 'https://ski-tracker-api.apexdiligence.workers.dev';
 
   final FlutterSecureStorage _storage;
   final http.Client _httpClient;
@@ -72,7 +71,15 @@ class ApiClient {
   }
 
   Map<String, dynamic> _handleResponse(http.Response response) {
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    Map<String, dynamic> data;
+    try {
+      data = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {
+      throw ApiException(
+        'Server error (${response.statusCode})',
+        response.statusCode,
+      );
+    }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return data;

@@ -481,9 +481,9 @@ class $JumpsTable extends Jumps with TableInfo<$JumpsTable, Jump> {
   static const VerificationMeta _airtimeMsMeta =
       const VerificationMeta('airtimeMs');
   @override
-  late final GeneratedColumn<double> airtimeMs = GeneratedColumn<double>(
+  late final GeneratedColumn<int> airtimeMs = GeneratedColumn<int>(
       'airtime_ms', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _distanceMMeta =
       const VerificationMeta('distanceM');
   @override
@@ -694,7 +694,7 @@ class $JumpsTable extends Jumps with TableInfo<$JumpsTable, Jump> {
       landingTimestampUs: attachedDatabase.typeMapping.read(
           DriftSqlType.int, data['${effectivePrefix}landing_timestamp_us'])!,
       airtimeMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}airtime_ms'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}airtime_ms'])!,
       distanceM: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}distance_m'])!,
       heightM: attachedDatabase.typeMapping
@@ -730,7 +730,7 @@ class Jump extends DataClass implements Insertable<Jump> {
   final String runId;
   final int takeoffTimestampUs;
   final int landingTimestampUs;
-  final double airtimeMs;
+  final int airtimeMs;
   final double distanceM;
   final double heightM;
   final double speedKmh;
@@ -766,7 +766,7 @@ class Jump extends DataClass implements Insertable<Jump> {
     map['run_id'] = Variable<String>(runId);
     map['takeoff_timestamp_us'] = Variable<int>(takeoffTimestampUs);
     map['landing_timestamp_us'] = Variable<int>(landingTimestampUs);
-    map['airtime_ms'] = Variable<double>(airtimeMs);
+    map['airtime_ms'] = Variable<int>(airtimeMs);
     map['distance_m'] = Variable<double>(distanceM);
     map['height_m'] = Variable<double>(heightM);
     map['speed_kmh'] = Variable<double>(speedKmh);
@@ -834,7 +834,7 @@ class Jump extends DataClass implements Insertable<Jump> {
       runId: serializer.fromJson<String>(json['runId']),
       takeoffTimestampUs: serializer.fromJson<int>(json['takeoffTimestampUs']),
       landingTimestampUs: serializer.fromJson<int>(json['landingTimestampUs']),
-      airtimeMs: serializer.fromJson<double>(json['airtimeMs']),
+      airtimeMs: serializer.fromJson<int>(json['airtimeMs']),
       distanceM: serializer.fromJson<double>(json['distanceM']),
       heightM: serializer.fromJson<double>(json['heightM']),
       speedKmh: serializer.fromJson<double>(json['speedKmh']),
@@ -856,7 +856,7 @@ class Jump extends DataClass implements Insertable<Jump> {
       'runId': serializer.toJson<String>(runId),
       'takeoffTimestampUs': serializer.toJson<int>(takeoffTimestampUs),
       'landingTimestampUs': serializer.toJson<int>(landingTimestampUs),
-      'airtimeMs': serializer.toJson<double>(airtimeMs),
+      'airtimeMs': serializer.toJson<int>(airtimeMs),
       'distanceM': serializer.toJson<double>(distanceM),
       'heightM': serializer.toJson<double>(heightM),
       'speedKmh': serializer.toJson<double>(speedKmh),
@@ -876,7 +876,7 @@ class Jump extends DataClass implements Insertable<Jump> {
           String? runId,
           int? takeoffTimestampUs,
           int? landingTimestampUs,
-          double? airtimeMs,
+          int? airtimeMs,
           double? distanceM,
           double? heightM,
           double? speedKmh,
@@ -1010,7 +1010,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
   final Value<String> runId;
   final Value<int> takeoffTimestampUs;
   final Value<int> landingTimestampUs;
-  final Value<double> airtimeMs;
+  final Value<int> airtimeMs;
   final Value<double> distanceM;
   final Value<double> heightM;
   final Value<double> speedKmh;
@@ -1047,7 +1047,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
     required String runId,
     required int takeoffTimestampUs,
     required int landingTimestampUs,
-    required double airtimeMs,
+    required int airtimeMs,
     required double distanceM,
     required double heightM,
     required double speedKmh,
@@ -1075,7 +1075,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
     Expression<String>? runId,
     Expression<int>? takeoffTimestampUs,
     Expression<int>? landingTimestampUs,
-    Expression<double>? airtimeMs,
+    Expression<int>? airtimeMs,
     Expression<double>? distanceM,
     Expression<double>? heightM,
     Expression<double>? speedKmh,
@@ -1117,7 +1117,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
       Value<String>? runId,
       Value<int>? takeoffTimestampUs,
       Value<int>? landingTimestampUs,
-      Value<double>? airtimeMs,
+      Value<int>? airtimeMs,
       Value<double>? distanceM,
       Value<double>? heightM,
       Value<double>? speedKmh,
@@ -1169,7 +1169,7 @@ class JumpsCompanion extends UpdateCompanion<Jump> {
       map['landing_timestamp_us'] = Variable<int>(landingTimestampUs.value);
     }
     if (airtimeMs.present) {
-      map['airtime_ms'] = Variable<double>(airtimeMs.value);
+      map['airtime_ms'] = Variable<int>(airtimeMs.value);
     }
     if (distanceM.present) {
       map['distance_m'] = Variable<double>(distanceM.value);
@@ -2403,7 +2403,7 @@ typedef $$JumpsTableCreateCompanionBuilder = JumpsCompanion Function({
   required String runId,
   required int takeoffTimestampUs,
   required int landingTimestampUs,
-  required double airtimeMs,
+  required int airtimeMs,
   required double distanceM,
   required double heightM,
   required double speedKmh,
@@ -2422,7 +2422,7 @@ typedef $$JumpsTableUpdateCompanionBuilder = JumpsCompanion Function({
   Value<String> runId,
   Value<int> takeoffTimestampUs,
   Value<int> landingTimestampUs,
-  Value<double> airtimeMs,
+  Value<int> airtimeMs,
   Value<double> distanceM,
   Value<double> heightM,
   Value<double> speedKmh,
@@ -2458,7 +2458,7 @@ class $$JumpsTableTableManager extends RootTableManager<
             Value<String> runId = const Value.absent(),
             Value<int> takeoffTimestampUs = const Value.absent(),
             Value<int> landingTimestampUs = const Value.absent(),
-            Value<double> airtimeMs = const Value.absent(),
+            Value<int> airtimeMs = const Value.absent(),
             Value<double> distanceM = const Value.absent(),
             Value<double> heightM = const Value.absent(),
             Value<double> speedKmh = const Value.absent(),
@@ -2496,7 +2496,7 @@ class $$JumpsTableTableManager extends RootTableManager<
             required String runId,
             required int takeoffTimestampUs,
             required int landingTimestampUs,
-            required double airtimeMs,
+            required int airtimeMs,
             required double distanceM,
             required double heightM,
             required double speedKmh,
@@ -2559,7 +2559,7 @@ class $$JumpsTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
-  ColumnFilters<double> get airtimeMs => $state.composableBuilder(
+  ColumnFilters<int> get airtimeMs => $state.composableBuilder(
       column: $state.table.airtimeMs,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
@@ -2643,7 +2643,7 @@ class $$JumpsTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
-  ColumnOrderings<double> get airtimeMs => $state.composableBuilder(
+  ColumnOrderings<int> get airtimeMs => $state.composableBuilder(
       column: $state.table.airtimeMs,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));

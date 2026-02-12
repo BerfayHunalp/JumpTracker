@@ -14,7 +14,7 @@ class JumpRepository {
     required String runId,
     required int takeoffTimestampUs,
     required int landingTimestampUs,
-    required double airtimeMs,
+    required int airtimeMs,
     required double distanceM,
     required double heightM,
     required double speedKmh,
@@ -87,6 +87,69 @@ class JumpRepository {
           ..orderBy([(j) => OrderingTerm.desc(j.heightM)])
           ..limit(1))
         .getSingleOrNull();
+  }
+
+  Future<List<Jump>> getAllJumpsChronological() {
+    return (_db.select(_db.jumps)
+          ..orderBy([(j) => OrderingTerm.asc(j.takeoffTimestampUs)]))
+        .get();
+  }
+
+  Future<double> getMaxSpeedAllTime() async {
+    final query = _db.selectOnly(_db.jumps)
+      ..addColumns([_db.jumps.speedKmh.max()]);
+    final row = await query.getSingle();
+    return row.read(_db.jumps.speedKmh.max()) ?? 0;
+  }
+
+  Future<double> getMaxLandingGForceAllTime() async {
+    final query = _db.selectOnly(_db.jumps)
+      ..addColumns([_db.jumps.landingGForce.max()]);
+    final row = await query.getSingle();
+    return row.read(_db.jumps.landingGForce.max()) ?? 0;
+  }
+
+  Future<double> getMaxHeightAllTime() async {
+    final query = _db.selectOnly(_db.jumps)
+      ..addColumns([_db.jumps.heightM.max()]);
+    final row = await query.getSingle();
+    return row.read(_db.jumps.heightM.max()) ?? 0;
+  }
+
+  Future<double> getMaxDistanceAllTime() async {
+    final query = _db.selectOnly(_db.jumps)
+      ..addColumns([_db.jumps.distanceM.max()]);
+    final row = await query.getSingle();
+    return row.read(_db.jumps.distanceM.max()) ?? 0;
+  }
+
+  Future<double> getMaxScoreAllTime() async {
+    final all = await _db.select(_db.jumps).get();
+    if (all.isEmpty) return 0;
+    double maxScore = 0;
+    for (final j in all) {
+      final score = (j.airtimeMs / 100) * 40 + j.heightM * 30 + j.distanceM * 10;
+      if (score > maxScore) maxScore = score;
+    }
+    return maxScore;
+  }
+
+  Future<int> getTrickedJumpCount() async {
+    final all = await (_db.select(_db.jumps)
+          ..where((j) => j.trickLabel.isNotNull()))
+        .get();
+    return all.where((j) => j.trickLabel != null && j.trickLabel!.isNotEmpty).length;
+  }
+
+  Future<List<String>> getAllTrickLabelsRaw() async {
+    final all = await (_db.select(_db.jumps)
+          ..where((j) => j.trickLabel.isNotNull()))
+        .get();
+    return all
+        .map((j) => j.trickLabel)
+        .where((s) => s != null && s.isNotEmpty)
+        .cast<String>()
+        .toList();
   }
 
   Future<Jump?> getBestJumpByScore() async {

@@ -64,6 +64,15 @@ class SessionRepository {
     );
   }
 
+  // ---- Chronological ----
+
+  Future<List<Session>> getCompletedSessionsChronological() {
+    return (_db.select(_db.sessions)
+          ..where((s) => s.endedAt.isNotNull())
+          ..orderBy([(s) => OrderingTerm.asc(s.startedAt)]))
+        .get();
+  }
+
   // ---- Aggregate stats ----
 
   Future<int> getTotalSessionCount() async {
@@ -84,7 +93,7 @@ class SessionRepository {
     final query = _db.selectOnly(_db.jumps)
       ..addColumns([_db.jumps.airtimeMs.max()]);
     final row = await query.getSingle();
-    return row.read(_db.jumps.airtimeMs.max()) ?? 0;
+    return (row.read(_db.jumps.airtimeMs.max()) ?? 0).toDouble();
   }
 
   Future<double> getTotalVerticalAllTime() async {

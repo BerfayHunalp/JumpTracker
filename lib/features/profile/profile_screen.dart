@@ -4,8 +4,11 @@ import '../../core/auth/auth_providers.dart';
 import '../../core/auth/auth_state.dart';
 import '../../core/database/database.dart';
 import '../../shared/widgets/stat_card.dart';
+import '../achievements/achievements_providers.dart';
+import '../achievements/achievements_screen.dart';
 import '../auth/login_screen.dart';
 import '../jump_detail/jump_detail_screen.dart';
+import '../stats/stats_screen.dart';
 import 'edit_profile_screen.dart';
 import 'profile_providers.dart';
 import 'widgets/avatar_widget.dart';
@@ -143,7 +146,7 @@ class ProfileScreen extends ConsumerWidget {
                   StatCard(
                     icon: Icons.timer,
                     value: stats.maxAirtimeMs > 0
-                        ? '${stats.maxAirtimeMs.toStringAsFixed(0)}ms'
+                        ? '${stats.maxAirtimeMs.toInt()}ms'
                         : '-',
                     label: 'Max Airtime',
                   ),
@@ -161,10 +164,61 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
 
+          // Navigation cards: Achievements + Stats
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _NavigationCard(
+                      icon: Icons.military_tech,
+                      label: 'Achievements',
+                      sublabelWidget: ref.watch(unlockedCountProvider).when(
+                            data: (count) => Text(
+                              '$count / 37 unlocked',
+                              style: const TextStyle(
+                                  color: Colors.white38, fontSize: 11),
+                            ),
+                            loading: () => const Text('...',
+                                style: TextStyle(
+                                    color: Colors.white38, fontSize: 11)),
+                            error: (_, __) => const SizedBox.shrink(),
+                          ),
+                      color: const Color(0xFFFFCA28),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const AchievementsScreen()),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _NavigationCard(
+                      icon: Icons.bar_chart,
+                      label: 'Statistics',
+                      sublabelWidget: const Text(
+                        'View your progress',
+                        style: TextStyle(color: Colors.white38, fontSize: 11),
+                      ),
+                      color: const Color(0xFF4FC3F7),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const StatsScreen()),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           // Personal Records header
           const SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
                 'PERSONAL RECORDS',
                 style: TextStyle(
@@ -325,16 +379,17 @@ class _GuestHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.only(top: 56),
+      padding: EdgeInsets.only(top: 40),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.person_outline, size: 48, color: Colors.white30),
-          SizedBox(height: 8),
+          Icon(Icons.person_outline, size: 40, color: Colors.white30),
+          SizedBox(height: 4),
           Text(
             'Profile',
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -411,6 +466,57 @@ class _BestJumpCard extends StatelessWidget {
               ),
             ),
             const Icon(Icons.chevron_right, color: Colors.white24, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NavigationCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Widget sublabelWidget;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _NavigationCard({
+    required this.icon,
+    required this.label,
+    required this.sublabelWidget,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 2),
+            sublabelWidget,
           ],
         ),
       ),
