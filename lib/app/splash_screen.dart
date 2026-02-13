@@ -74,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen>
           return Opacity(opacity: _welcomeFade.value, child: child);
         },
         child: Scaffold(
-          backgroundColor: const Color(0xFF121212),
+          backgroundColor: Colors.white,
           body: SafeArea(
             child: GestureDetector(
               onTap: _dismissWelcome,
@@ -92,13 +92,13 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       const SizedBox(height: 40),
                       const Text(
-                        'No ads, no revenue,\njust a cool app to share\nwith your friends.',
+                        'No ads,\nno revenue,\njust a cool app to share\nwith your friends.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w300,
                           height: 1.5,
-                          color: Colors.white70,
+                          color: Colors.black87,
                         ),
                       ),
                       const SizedBox(height: 48),
@@ -135,7 +135,7 @@ class _SplashScreenState extends State<SplashScreen>
       child: Scaffold(
         body: SizedBox.expand(
           child: Image.asset(
-            'assets/images/bh_splash.png',
+            'assets/images/logo.png',
             fit: BoxFit.cover,
           ),
         ),
