@@ -3,11 +3,78 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/equipment.dart';
 import 'equipment_providers.dart';
 
-class EquipmentScreen extends ConsumerWidget {
+class EquipmentScreen extends ConsumerStatefulWidget {
   const EquipmentScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EquipmentScreen> createState() => _EquipmentScreenState();
+}
+
+class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
+  bool _profilePromptShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showProfilePromptIfNeeded();
+    });
+  }
+
+  void _showProfilePromptIfNeeded() {
+    final notifier = ref.read(equipmentProvider.notifier);
+    if (!notifier.isProfileSetupDone && !_profilePromptShown) {
+      _profilePromptShown = true;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: const Color(0xFF1E1E1E),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            'Backcountry Skiing Profile',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          content: const Text(
+            'We have a preconfigured equipment set for backcountry skiing.\n\nDoes that suit your profile?',
+            style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                notifier.declineProfile();
+                Navigator.of(ctx).pop();
+              },
+              child: const Text(
+                'No, start empty',
+                style: TextStyle(color: Colors.white38),
+              ),
+            ),
+            FilledButton(
+              onPressed: () {
+                notifier.acceptBackcountryProfile();
+                Navigator.of(ctx).pop();
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF4FC3F7),
+              ),
+              child: const Text(
+                'Yes, load it',
+                style: TextStyle(color: Colors.black87),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(equipmentProvider);
     final notifier = ref.read(equipmentProvider.notifier);
 
@@ -23,10 +90,7 @@ class EquipmentScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 80),
         children: [
-          // Summary card
           _SummaryCard(notifier: notifier),
-
-          // Items by body zone
           ...EquipmentZone.values.map((zone) {
             final items = EquipmentCatalog.byZone(zone);
             if (items.isEmpty) return const SizedBox.shrink();
@@ -155,7 +219,7 @@ class _ZoneSectionState extends ConsumerState<_ZoneSection> {
 }
 
 // ---------------------------------------------------------------------------
-// Equipment tile
+// Equipment tile — sandbox: detail only, no suggestions
 // ---------------------------------------------------------------------------
 
 class _EquipmentTile extends ConsumerWidget {
@@ -197,7 +261,6 @@ class _EquipmentTile extends ConsumerWidget {
                   ),
                 ),
               ),
-              // Type badge
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -211,28 +274,6 @@ class _EquipmentTile extends ConsumerWidget {
                     fontSize: 9,
                     fontWeight: FontWeight.w700,
                     color: typeColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Action badge
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: item.action == EquipmentAction.buy
-                      ? Colors.white.withValues(alpha: 0.06)
-                      : const Color(0xFFCE93D8).withValues(alpha: 0.15),
-                ),
-                child: Text(
-                  item.action.label,
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: item.action == EquipmentAction.buy
-                        ? Colors.white38
-                        : const Color(0xFFCE93D8),
                   ),
                 ),
               ),
@@ -261,44 +302,10 @@ class _EquipmentTile extends ConsumerWidget {
           childrenPadding:
               const EdgeInsets.fromLTRB(16, 0, 16, 12),
           children: [
-            if (item.why.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Why: ',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white54,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        item.why,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white38,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             if (item.detail.isNotEmpty)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Detail: ',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white54,
-                    ),
-                  ),
                   Expanded(
                     child: Text(
                       item.detail,

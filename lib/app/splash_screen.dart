@@ -92,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       const SizedBox(height: 40),
                       const Text(
-                        'No ads,\n\nNo Revenue\n\nJust a jump tracker for you\nand your friends',
+                        'No ads.\n\nNo Revenue.\n\nJust a jump tracker for you\nand your friends.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 20,
