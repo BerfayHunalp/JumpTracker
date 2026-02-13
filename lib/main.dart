@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app/router.dart';
+import 'app/splash_screen.dart';
 import 'app/theme.dart';
 import 'core/auth/auth_providers.dart';
 import 'features/tricks/trick_providers.dart';
@@ -42,7 +43,7 @@ class _SkiTrackerAppState extends ConsumerState<SkiTrackerApp> {
       title: 'Ski Tracker',
       theme: SkiTrackerTheme.dark,
       debugShowCheckedModeBanner: false,
-      home: const AppRoot(),
+      home: const SplashScreen(child: AppRoot()),
     );
   }
 }
