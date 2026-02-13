@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'app_database.dart';
+import '../models/trick.dart';
 
 class JumpRepository {
   final AppDatabase _db;
@@ -128,7 +129,12 @@ class JumpRepository {
     if (all.isEmpty) return 0;
     double maxScore = 0;
     for (final j in all) {
-      final score = (j.airtimeMs / 100) * 40 + j.heightM * 30 + j.distanceM * 10;
+      final score = computeJumpScore(
+        airtimeMs: j.airtimeMs,
+        heightM: j.heightM,
+        distanceM: j.distanceM,
+        trickLabel: j.trickLabel,
+      );
       if (score > maxScore) maxScore = score;
     }
     return maxScore;
@@ -158,8 +164,18 @@ class JumpRepository {
     final all = await _db.select(_db.jumps).get();
     if (all.isEmpty) return null;
     all.sort((a, b) {
-      final scoreA = (a.airtimeMs / 100) * 40 + a.heightM * 30 + a.distanceM * 10;
-      final scoreB = (b.airtimeMs / 100) * 40 + b.heightM * 30 + b.distanceM * 10;
+      final scoreA = computeJumpScore(
+        airtimeMs: a.airtimeMs,
+        heightM: a.heightM,
+        distanceM: a.distanceM,
+        trickLabel: a.trickLabel,
+      );
+      final scoreB = computeJumpScore(
+        airtimeMs: b.airtimeMs,
+        heightM: b.heightM,
+        distanceM: b.distanceM,
+        trickLabel: b.trickLabel,
+      );
       return scoreB.compareTo(scoreA);
     });
     return all.first;

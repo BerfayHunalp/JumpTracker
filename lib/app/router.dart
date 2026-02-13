@@ -6,6 +6,7 @@ import '../features/session/session_screen.dart';
 import '../features/history/history_screen.dart';
 import '../features/community/community_screen.dart';
 import '../features/profile/profile_screen.dart';
+import '../features/tricks/trick_repertoire_screen.dart';
 
 /// Root widget that gates on auth state.
 /// Shows LoginScreen when not authenticated, AppShell when authenticated or skipped.
@@ -35,10 +36,11 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  int _currentIndex = 1; // Start on Record tab
+  int _currentIndex = 2; // Start on Record tab (index shifted)
 
   static const _screens = [
     HistoryScreen(),
+    TrickRepertoireScreen(),
     SessionScreen(),
     CommunityScreen(),
     ProfileScreen(),
@@ -55,6 +57,10 @@ class _AppShellState extends State<AppShell> {
           NavigationDestination(
             icon: Icon(Icons.history),
             label: 'Sessions',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.sports_martial_arts),
+            label: 'Tricks',
           ),
           NavigationDestination(
             icon: Icon(Icons.play_circle_fill, size: 32),

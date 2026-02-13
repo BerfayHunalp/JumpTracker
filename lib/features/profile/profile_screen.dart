@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_providers.dart';
 import '../../core/auth/auth_state.dart';
 import '../../core/database/database.dart';
+import '../../core/models/trick.dart';
 import '../../shared/widgets/stat_card.dart';
 import '../achievements/achievements_providers.dart';
 import '../achievements/achievements_screen.dart';
 import '../auth/login_screen.dart';
+import '../equipment/equipment_screen.dart';
 import '../jump_detail/jump_detail_screen.dart';
 import '../stats/stats_screen.dart';
 import 'edit_profile_screen.dart';
@@ -164,49 +166,71 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
 
-          // Navigation cards: Achievements + Stats
+          // Navigation cards: Achievements + Stats + Equipment
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
+              child: Column(
                 children: [
-                  Expanded(
-                    child: _NavigationCard(
-                      icon: Icons.military_tech,
-                      label: 'Achievements',
-                      sublabelWidget: ref.watch(unlockedCountProvider).when(
-                            data: (count) => Text(
-                              '$count / 37 unlocked',
-                              style: const TextStyle(
-                                  color: Colors.white38, fontSize: 11),
-                            ),
-                            loading: () => const Text('...',
-                                style: TextStyle(
-                                    color: Colors.white38, fontSize: 11)),
-                            error: (_, __) => const SizedBox.shrink(),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _NavigationCard(
+                          icon: Icons.military_tech,
+                          label: 'Achievements',
+                          sublabelWidget: ref.watch(unlockedCountProvider).when(
+                                data: (count) => Text(
+                                  '$count / 37 unlocked',
+                                  style: const TextStyle(
+                                      color: Colors.white38, fontSize: 11),
+                                ),
+                                loading: () => const Text('...',
+                                    style: TextStyle(
+                                        color: Colors.white38, fontSize: 11)),
+                                error: (_, __) => const SizedBox.shrink(),
+                              ),
+                          color: const Color(0xFFFFCA28),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AchievementsScreen()),
                           ),
-                      color: const Color(0xFFFFCA28),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const AchievementsScreen()),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _NavigationCard(
+                          icon: Icons.bar_chart,
+                          label: 'Statistics',
+                          sublabelWidget: const Text(
+                            'View your progress',
+                            style: TextStyle(color: Colors.white38, fontSize: 11),
+                          ),
+                          color: const Color(0xFF4FC3F7),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const StatsScreen()),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
                     child: _NavigationCard(
-                      icon: Icons.bar_chart,
-                      label: 'Statistics',
+                      icon: Icons.backpack,
+                      label: 'My Equipment',
                       sublabelWidget: const Text(
-                        'View your progress',
+                        'Track your gear checklist',
                         style: TextStyle(color: Colors.white38, fontSize: 11),
                       ),
-                      color: const Color(0xFF4FC3F7),
+                      color: const Color(0xFF81C784),
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => const StatsScreen()),
+                            builder: (_) => const EquipmentScreen()),
                       ),
                     ),
                   ),
@@ -335,8 +359,12 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   String _jumpScore(Jump j) {
-    final score =
-        (j.airtimeMs / 100) * 40 + j.heightM * 30 + j.distanceM * 10;
+    final score = computeJumpScore(
+      airtimeMs: j.airtimeMs,
+      heightM: j.heightM,
+      distanceM: j.distanceM,
+      trickLabel: j.trickLabel,
+    );
     return score.toStringAsFixed(0);
   }
 }

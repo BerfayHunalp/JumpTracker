@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app/router.dart';
 import 'app/theme.dart';
 import 'core/auth/auth_providers.dart';
+import 'features/tricks/trick_providers.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: SkiTrackerApp()));
+  final prefs = await SharedPreferences.getInstance();
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPrefsProvider.overrideWithValue(prefs),
+      ],
+      child: const SkiTrackerApp(),
+    ),
+  );
 }
 
 class SkiTrackerApp extends ConsumerStatefulWidget {

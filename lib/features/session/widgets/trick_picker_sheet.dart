@@ -122,7 +122,7 @@ class _TrickPickerSheetState extends State<TrickPickerSheet> {
                 child: ListView(
                   controller: scrollController,
                   padding: const EdgeInsets.only(bottom: 24),
-                  children: TrickCatalog.allByCategory.entries.map((entry) {
+                  children: TrickCatalog.allByLabelCategory.entries.map((entry) {
                     return _CategorySection(
                       title: entry.key,
                       tricks: entry.value,
@@ -180,15 +180,15 @@ class _CategorySection extends StatelessWidget {
                 selected: isSelected,
                 onSelected: (_) => onToggle(trick.name),
                 showCheckmark: false,
-                selectedColor: const Color(0xFF4FC3F7).withValues(alpha: 0.3),
+                selectedColor: Color(trick.category.colorValue).withValues(alpha: 0.3),
                 backgroundColor: Colors.white.withValues(alpha: 0.06),
                 side: BorderSide(
                   color: isSelected
-                      ? const Color(0xFF4FC3F7)
+                      ? Color(trick.category.colorValue)
                       : Colors.white12,
                 ),
                 labelStyle: TextStyle(
-                  color: isSelected ? const Color(0xFF4FC3F7) : Colors.white70,
+                  color: isSelected ? Color(trick.category.colorValue) : Colors.white70,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 13,
                 ),

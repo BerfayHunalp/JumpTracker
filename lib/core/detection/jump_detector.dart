@@ -33,7 +33,7 @@ class JumpDetectorConfig {
   const JumpDetectorConfig({
     this.freefallThresholdG = 0.4,
     this.landingThresholdG = 1.8,
-    this.minAirtimeMs = 200,
+    this.minAirtimeMs = 250,
     this.maxAirtimeMs = 8000,
     this.freefallConfirmSamples = 3,
     this.cooldownMs = 500,

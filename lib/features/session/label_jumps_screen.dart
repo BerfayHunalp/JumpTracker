@@ -118,8 +118,13 @@ class _JumpLabelTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tricks = parseTrickLabel(trickLabel);
-    final score =
-        (jump.airtimeMs / 100) * 40 + jump.heightM * 30 + jump.distanceM * 10;
+    final multiplier = trickMultiplierFromLabel(trickLabel);
+    final score = computeJumpScore(
+      airtimeMs: jump.airtimeMs,
+      heightM: jump.heightM,
+      distanceM: jump.distanceM,
+      trickLabel: trickLabel,
+    );
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -171,6 +176,24 @@ class _JumpLabelTile extends StatelessWidget {
                     style: const TextStyle(color: Colors.white60, fontSize: 13),
                   ),
                   const SizedBox(width: 12),
+                  if (multiplier > 1.0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 1),
+                      margin: const EdgeInsets.only(right: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        color: const Color(0xFFFFD54F).withValues(alpha: 0.2),
+                      ),
+                      child: Text(
+                        '${multiplier.toStringAsFixed(1)}x',
+                        style: const TextStyle(
+                          color: Color(0xFFFFD54F),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
                   Text(
                     '${score.toStringAsFixed(0)} pts',
                     style: const TextStyle(
