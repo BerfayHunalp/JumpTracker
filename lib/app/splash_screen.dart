@@ -74,48 +74,64 @@ class _SplashScreenState extends State<SplashScreen>
           return Opacity(opacity: _welcomeFade.value, child: child);
         },
         child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: const Color.fromARGB(255, 23, 42, 75),
           body: SafeArea(
             child: GestureDetector(
               onTap: _dismissWelcome,
               behavior: HitTestBehavior.opaque,
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        'assets/big icon.png',
-                        width: 120,
-                        fit: BoxFit.contain,
-                      ),
-                      const SizedBox(height: 40),
-                      const Text(
-                        'Become the wind.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w300,
-                          height: 1.5,
-                          color: Colors.black87,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/big icon.png',
+                          width: 120,
+                          fit: BoxFit.contain,
                         ),
-                      ),
-                      const SizedBox(height: 48),
-                      TextButton(
-                        onPressed: _dismissWelcome,
-                        child: const Text(
-                          "Let's go",
+                        const SizedBox(height: 40),
+                        const Text(
+                          'Become the wind.',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF4FC3F7),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w300,
+                            height: 1.5,
+                            color: Colors.white,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 48),
+                        TextButton(
+                          onPressed: _dismissWelcome,
+                          child: const Text(
+                            "Let's go",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF4FC3F7),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  const Spacer(),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 24),
+                    child: Text(
+                      '\u00A9 2026, All rights reserved.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
