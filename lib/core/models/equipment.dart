@@ -84,7 +84,7 @@ class EquipmentCatalog {
     ),
     Equipment(
       id: 'thermique_haut',
-      name: 'Base Layer Top',
+      name: 'Thermal Top',
       icon: '\u{1F455}',
       type: EquipmentType.materiel,
       zone: EquipmentZone.torse,
@@ -153,7 +153,7 @@ class EquipmentCatalog {
     ),
     Equipment(
       id: 'thermique_bas',
-      name: 'Base Layer Bottom',
+      name: 'Thermal Bottom',
       icon: '\u{1FA73}',
       type: EquipmentType.materiel,
       zone: EquipmentZone.jambes,
