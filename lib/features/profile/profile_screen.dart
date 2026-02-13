@@ -8,8 +8,10 @@ import '../../shared/widgets/stat_card.dart';
 import '../achievements/achievements_providers.dart';
 import '../achievements/achievements_screen.dart';
 import '../auth/login_screen.dart';
+import '../about/about_screen.dart';
 import '../equipment/equipment_screen.dart';
 import '../jump_detail/jump_detail_screen.dart';
+import '../learn/learn_screen.dart';
 import '../stats/stats_screen.dart';
 import 'edit_profile_screen.dart';
 import 'profile_providers.dart';
@@ -233,6 +235,50 @@ class ProfileScreen extends ConsumerWidget {
                             builder: (_) => const EquipmentScreen()),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _NavigationCard(
+                          icon: Icons.school,
+                          label: 'Learn',
+                          sublabelWidget: Builder(builder: (_) {
+                            final done = ref.watch(learnProgressProvider).length;
+                            final total = LearnCatalog.all.length;
+                            return Text(
+                              '$done / $total lessons',
+                              style: const TextStyle(
+                                  color: Colors.white38, fontSize: 11),
+                            );
+                          }),
+                          color: const Color(0xFFFFCA28),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const LearnScreen()),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _NavigationCard(
+                          icon: Icons.info_outline,
+                          label: 'About',
+                          sublabelWidget: const Text(
+                            'How it all works',
+                            style: TextStyle(
+                                color: Colors.white38, fontSize: 11),
+                          ),
+                          color: const Color(0xFF90A4AE),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AboutScreen()),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -47,6 +47,9 @@ dependencies:
   permission_handler: ^11.1.0
   flutter_local_notifications: ^17.0.0
 
+  # URL launcher
+  url_launcher: ^6.2.4
+
   # Sharing
   share_plus: ^9.0.0
 

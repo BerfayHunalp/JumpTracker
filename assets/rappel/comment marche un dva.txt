@@ -1,0 +1,68 @@
+Tu veux dire un DVA (Détecteur de Victimes d'Avalanche). C'est souvent appelé par l'ancienne marque "ARVA", mais le terme technique est DVA.
+
+C'est l'appareil électronique le plus important de ton sac. Voici comment ça marche concrètement (c'est de la physique radio assez simple).
+
+1. Le Principe de Base : L'Émetteur-Récepteur Radio
+Un DVA est une radio qui fonctionne sur une fréquence unique mondiale : 457 kHz. Il a deux modes (via un interrupteur mécanique ou bouton verrouillé) :
+
+Mode ÉMISSION (Send) : C'est le mode par défaut quand tu skies.
+
+L'appareil envoie une impulsion électromagnétique (un "bip" radio invisible) toutes les secondes.
+
+Analogie : C'est comme un phare dans la nuit qui clignote "Je suis là".
+
+Le signal traverse la neige (même 3 mètres) sans problème.
+
+Mode RÉCEPTION (Search) : C'est le mode que tu actives seulement si ton pote est sous la neige.
+
+Ton appareil arrête d'émettre et devient une "oreille" qui écoute le signal 457 kHz des autres.
+
+2. Comment il te guide (La Technologie "3 Antennes")
+Les vieux appareils analogiques faisaient juste "Bip-Bip" plus fort quand tu approchais. C'était l'enfer. Les modèles modernes (que tu vas acheter, type Mammut Barryvox ou Ortovox Diract) sont Numériques à 3 antennes (X, Y, Z).
+
+Voici ce que fait le processeur quand tu passes en mode Recherche :
+
+Capter le signal : Les antennes captent les ondes magnétiques émises par la victime.
+
+Calculer la Distance : Il mesure la puissance du signal et te l'affiche en mètres (ex: 45 mètres).
+
+Calculer la Direction : En comparant ce que reçoivent les 3 antennes, il triangule la position et t'affiche une FLÈCHE sur l'écran.
+
+3. La Procédure en 3 Phases (Ce que tu dois apprendre)
+Le DVA ne fait pas tout, tu dois suivre une méthode stricte :
+
+Phase 1 : Recherche du Signal (Le Zig-Zag)
+
+L'écran est vide. Tu cours en zig-zag sur l'avalanche jusqu'à ce que le DVA capte le premier "bip".
+
+Phase 2 : Recherche Approximative (La Course)
+
+Une flèche et un chiffre apparaissent (ex: "30m ->").
+
+Tu suis la flèche en courant. Le chiffre doit baisser.
+
+Si le chiffre augmente, tu vas dans le mauvais sens (tu fais demi-tour).
+
+Tu ralentis quand tu arrives à 3 mètres.
+
+Phase 3 : Recherche Fine (La Croix)
+
+À moins de 3 mètres, la flèche disparaît (le DVA est trop près, il sature).
+
+Tu te mets à genoux (skis enlevés !). Tu déplaces le DVA en croix au ras de la neige pour trouver le chiffre le plus petit possible (ex: 0.8m).
+
+C'est là que tu plantes la sonde.
+
+4. Le Piège des Interférences (Très important pour toi)
+Comme c'est une radio, elle est brouillée par l'électronique.
+
+Ton Téléphone : Il doit être dans une autre poche, à au moins 20 cm du DVA en mode ski, et à 50 cm quand tu cherches (mode avion c'est mieux).
+
+La Go-Pro / Clés de voiture magnétiques : Éloigne-les du DVA.
+
+Résumé pour ton achat
+Tu as le budget. Prends un DVA Numérique à 3 antennes.
+
+Modèles recommandés : Mammut Barryvox S (le roi de la portée), Ortovox Diract Voice (il te parle : "Allez à gauche", "Baissez-vous", top en cas de panique), ou Arva Neo BT Pro.
+
+Rappel vital : Un DVA ne sert à rien si tu n'as pas la SONDE (pour toucher la victime précisément) et la PELLE (pour creuser). Le DVA te dit juste "X est ici sous 1m50 de neige". Sans pelle, il te faut 1h pour creuser à la main (la victime a 15min d'air). Avec une pelle, il faut 10min.

@@ -76,7 +76,7 @@ class _AppShellState extends State<AppShell> {
             label: 'Sessions',
           ),
           NavigationDestination(
-            icon: Icon(Icons.sports_martial_arts),
+            icon: Icon(Icons.downhill_skiing),
             label: 'Tricks',
           ),
           NavigationDestination(

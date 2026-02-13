@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/models/equipment.dart';
 import 'equipment_providers.dart';
 
@@ -219,7 +220,7 @@ class _ZoneSectionState extends ConsumerState<_ZoneSection> {
 }
 
 // ---------------------------------------------------------------------------
-// Equipment tile — sandbox: detail only, no suggestions
+// Equipment tile — with why, detail, and shop URL
 // ---------------------------------------------------------------------------
 
 class _EquipmentTile extends ConsumerWidget {
@@ -302,6 +303,32 @@ class _EquipmentTile extends ConsumerWidget {
           childrenPadding:
               const EdgeInsets.fromLTRB(16, 0, 16, 12),
           children: [
+            if (item.why.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Why: ',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF4FC3F7),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        item.why,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF4FC3F7),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             if (item.detail.isNotEmpty)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,8 +344,134 @@ class _EquipmentTile extends ConsumerWidget {
                   ),
                 ],
               ),
+            if (!owned)
+              _ShopUrlSection(itemId: item.id),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Shop URL section — shown for unowned items
+// ---------------------------------------------------------------------------
+
+class _ShopUrlSection extends ConsumerWidget {
+  final String itemId;
+
+  const _ShopUrlSection({required this.itemId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(equipmentProvider.notifier);
+    final url = notifier.shopUrl(itemId);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        children: [
+          if (url != null && url.isNotEmpty) ...[
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _openUrl(url),
+                child: Text(
+                  url,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF4FC3F7),
+                    decoration: TextDecoration.underline,
+                    decorationColor: Color(0xFF4FC3F7),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => _showUrlDialog(context, notifier, itemId, url),
+              child: const Icon(Icons.edit, size: 16, color: Colors.white38),
+            ),
+            const SizedBox(width: 4),
+            GestureDetector(
+              onTap: () => notifier.setShopUrl(itemId, null),
+              child: const Icon(Icons.close, size: 16, color: Colors.white38),
+            ),
+          ] else
+            GestureDetector(
+              onTap: () => _showUrlDialog(context, notifier, itemId, null),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add_link, size: 14, color: Colors.white30),
+                  SizedBox(width: 4),
+                  Text(
+                    'Add shop link',
+                    style: TextStyle(fontSize: 11, color: Colors.white30),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  void _showUrlDialog(
+    BuildContext context,
+    EquipmentNotifier notifier,
+    String itemId,
+    String? currentUrl,
+  ) {
+    final controller = TextEditingController(text: currentUrl ?? '');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Shop Link',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          decoration: InputDecoration(
+            hintText: 'https://...',
+            hintStyle: const TextStyle(color: Colors.white24),
+            filled: true,
+            fillColor: Colors.white.withValues(alpha: 0.06),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          keyboardType: TextInputType.url,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white38)),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              notifier.setShopUrl(itemId, value.isEmpty ? null : value);
+              Navigator.of(ctx).pop();
+            },
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF4FC3F7)),
+            child: const Text('Save', style: TextStyle(color: Colors.black87)),
+          ),
+        ],
       ),
     );
   }
