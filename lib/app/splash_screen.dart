@@ -86,13 +86,13 @@ class _SplashScreenState extends State<SplashScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Image.asset(
-                        'assets/images/bh_logo_small.png',
-                        width: 60,
+                        'assets/big icon.png',
+                        width: 120,
                         fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 40),
                       const Text(
-                        'No ads.\n\nNo Revenue.\n\nJust a jump tracker for you\nand your friends.',
+                        'Become the wind.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 20,

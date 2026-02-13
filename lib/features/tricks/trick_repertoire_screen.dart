@@ -312,15 +312,8 @@ class _TrickCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mastery = ref.watch(trickMasteryProvider.notifier).getMastery(trick.id);
     final color = Color(trick.category.colorValue);
-    final hasPrereq = trick.prerequisiteId != null;
-
     return Container(
-      margin: EdgeInsets.fromLTRB(
-        hasPrereq ? 32 : 16,
-        0,
-        16,
-        6,
-      ),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 6),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,

@@ -58,7 +58,7 @@ class _AppShellState extends State<AppShell> {
             child: Opacity(
               opacity: 0.25,
               child: Image.asset(
-                'assets/images/bh_logo_small.png',
+                'assets/icon.png',
                 width: 28,
                 height: 28,
                 fit: BoxFit.contain,

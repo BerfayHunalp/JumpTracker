@@ -34,19 +34,19 @@ class LearnCatalog {
   static const categories = [
     'Security',
     'Mountain',
-    'Gear Choices',
+    'Backcountry Gear',
   ];
 
   static const categoryIcons = {
     'Security': Icons.health_and_safety,
     'Mountain': Icons.terrain,
-    'Gear Choices': Icons.build,
+    'Backcountry Gear': Icons.build,
   };
 
   static const categoryColors = {
     'Security': Color(0xFFFF7043),
     'Mountain': Color(0xFFCE93D8),
-    'Gear Choices': Color(0xFF4FC3F7),
+    'Backcountry Gear': Color(0xFF4FC3F7),
   };
 
   static const all = [
@@ -159,7 +159,7 @@ class LearnCatalog {
       id: 'ski_selection',
       title: 'Freeride Ski Selection',
       emoji: '\u{1F3BF}',
-      category: 'Gear Choices',
+      category: 'Backcountry Gear',
       xpReward: 15,
       paragraphs: [
         'You need a wide ski (to float in powder) with pop (spring for jumping). The sweet spot for a resort like Isola: 105\u2013115 mm waist width.',
@@ -173,7 +173,7 @@ class LearnCatalog {
       id: 'pivot_bindings',
       title: 'Look Pivot Bindings',
       emoji: '\u2699',
-      category: 'Gear Choices',
+      category: 'Backcountry Gear',
       xpReward: 15,
       paragraphs: [
         'The Look Pivot (15 or 18) is THE pro freestyle binding. The heel piece pivots under your foot instead of lifting up like regular bindings.',
@@ -186,7 +186,7 @@ class LearnCatalog {
       id: 'boot_choice',
       title: 'Freeride Boots (Flex 130)',
       emoji: '\u{1F462}',
-      category: 'Gear Choices',
+      category: 'Backcountry Gear',
       xpReward: 15,
       paragraphs: [
         'FLEX 130: At ~80 kg with athletic background, you need direct power transmission. Below 130 flex the boot collapses in hard carves and absorbs your pop. Above 140 and you can\'t flex enough to absorb landings.',
@@ -199,10 +199,9 @@ class LearnCatalog {
       id: 'stealth_protection',
       title: 'Stealth Protection Setup',
       emoji: '\u{1F6E1}',
-      category: 'Gear Choices',
+      category: 'Backcountry Gear',
       xpReward: 15,
       paragraphs: [
-        'You don\'t want to look like a mountaineer. The solution: integrated protection that\'s invisible.',
         'EVOC BACKPACK WITH SPINE PROTECTOR: A certified back plate is built into the pack. It hugs your back, doesn\'t shift during a 360, and you forget it\'s there. Holds all your safety gear.',
         'DVA HARNESS: Worn under your jacket. The Barryvox S (best range) or Ortovox Diract Voice (talks to you: "go left", "crouch down" \u2014 ideal in panic) clips to the harness and stays invisible.',
         'KNEE BRACE (ZAMST ZK-7): Lateral resin/carbon stays mechanically replace tired ligaments. Prevents drawer motion and rotation (ACL protection). Must be worn tight under your ski pants \u2014 nobody sees it.',
