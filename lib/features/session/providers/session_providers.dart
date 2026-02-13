@@ -145,6 +145,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
         required double speed,
         required double bearing,
         required double accuracy,
+        required double speedAccuracy,
         required int timestampUs,
       }) {
         _recorder.processGps(
@@ -154,6 +155,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
           speed: speed,
           bearing: bearing,
           accuracy: accuracy,
+          speedAccuracy: speedAccuracy,
           timestampUs: timestampUs,
         );
       };
@@ -253,6 +255,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
         speed: gps.speed,
         bearing: gps.bearing,
         accuracy: gps.accuracy,
+        speedAccuracy: 0.5, // simulated: ~0.5 m/s uncertainty
         timestampUs: now,
       );
     }

@@ -55,6 +55,7 @@ class GpsKalmanFilter {
     required double longitude,
     required double accuracyM,
     required double speedMs,
+    required double speedAccuracyMs,
     required double bearingDeg,
     required int timestampUs,
   }) {
@@ -133,9 +134,14 @@ class GpsKalmanFilter {
     final measVLon = speedDegPerS * math.sin(bearingRad) /
         math.cos(_lat * math.pi / 180);
 
-    // Velocity Kalman gain (use same accuracy proxy)
-    final kVLat = _pVLat / (_pVLat + _qVel * 100);
-    final kVLon = _pVLon / (_pVLon + _qVel * 100);
+    // Velocity measurement noise from reported speed accuracy.
+    // Convert speed accuracy (m/s) to deg/s variance.
+    // Clamp to a minimum to avoid division by zero when accuracy is 0.
+    final spdAccMs = speedAccuracyMs > 0 ? speedAccuracyMs : 1.0;
+    final spdAccDeg = spdAccMs / 111320;
+    final rVel = spdAccDeg * spdAccDeg;
+    final kVLat = _pVLat / (_pVLat + rVel);
+    final kVLon = _pVLon / (_pVLon + rVel);
     _vLat += kVLat * (measVLat - _vLat);
     _vLon += kVLon * (measVLon - _vLon);
 

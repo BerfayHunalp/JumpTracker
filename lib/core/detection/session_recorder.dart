@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import '../models/sensor_frame.dart';
 import '../models/jump.dart';
 import 'jump_detector.dart';
@@ -20,6 +21,10 @@ class SessionRecorder {
   /// are discarded to prevent noisy fixes from corrupting the track.
   static const double _maxAccuracyM = 20.0;
 
+  /// Maximum plausible speed (m/s). GPS readings implying faster movement
+  /// are rejected as outliers (200 km/h ≈ 55.6 m/s covers elite skiing).
+  static const double _maxSpeedMs = 55.6;
+
   /// Most recent GPS data — held and merged into accel-only frames.
   double? _lastLat;
   double? _lastLon;
@@ -27,6 +32,9 @@ class SessionRecorder {
   double? _lastGpsSpeed;
   double? _lastGpsBearing;
   double? _lastGpsAccuracy;
+
+  /// Timestamp of the last accepted GPS fix (for interpolation).
+  int _lastGpsTimestampUs = 0;
 
   /// Most recent barometric pressure.
   double? _lastPressure;
@@ -55,6 +63,7 @@ class SessionRecorder {
     _jumps.clear();
     _gpsTrack.clear();
     _frameCount = 0;
+    _lastGpsTimestampUs = 0;
   }
 
   void stop() {
@@ -62,20 +71,41 @@ class SessionRecorder {
   }
 
   /// Feed raw accelerometer data at ~100Hz.
-  /// GPS and baro data are merged from their latest values.
+  /// GPS position is interpolated forward from last fix using speed + bearing.
   Jump? processAccelerometer(int timestampUs, double x, double y, double z) {
     if (!_isRecording) return null;
 
     // Apply low-pass filter
     final filtered = _accelFilter.filter(x, y, z);
 
+    // Interpolate GPS position forward from last fix
+    double? interpLat = _lastLat;
+    double? interpLon = _lastLon;
+    if (_lastLat != null &&
+        _lastGpsSpeed != null &&
+        _lastGpsBearing != null &&
+        _lastGpsTimestampUs > 0) {
+      final dtS = (timestampUs - _lastGpsTimestampUs) / 1e6;
+      // Only interpolate for reasonable gaps (up to 3 seconds)
+      if (dtS > 0 && dtS < 3.0 && _lastGpsSpeed! > 0.5) {
+        final bearingRad = _lastGpsBearing! * math.pi / 180;
+        final distM = _lastGpsSpeed! * dtS;
+        // Convert distance to degrees
+        final dLat = (distM * math.cos(bearingRad)) / 111320;
+        final dLon = (distM * math.sin(bearingRad)) /
+            (111320 * math.cos(_lastLat! * math.pi / 180));
+        interpLat = _lastLat! + dLat;
+        interpLon = _lastLon! + dLon;
+      }
+    }
+
     final frame = SensorFrame(
       timestampUs: timestampUs,
       accelX: filtered.x,
       accelY: filtered.y,
       accelZ: filtered.z,
-      latitude: _lastLat,
-      longitude: _lastLon,
+      latitude: interpLat,
+      longitude: interpLon,
       gpsAltitude: _lastGpsAlt,
       gpsSpeed: _lastGpsSpeed,
       gpsBearing: _lastGpsBearing,
@@ -100,6 +130,7 @@ class SessionRecorder {
     required double speed,
     required double bearing,
     required double accuracy,
+    required double speedAccuracy,
     required int timestampUs,
   }) {
     if (!_isRecording) return;
@@ -122,12 +153,16 @@ class SessionRecorder {
     // Reject poor-accuracy readings for detection pipeline
     if (accuracy > _maxAccuracyM) return;
 
+    // Reject impossible speed outliers (GPS teleportation)
+    if (speed > _maxSpeedMs) return;
+
     // Smooth through Kalman filter
     final filtered = _gpsFilter.update(
       latitude: latitude,
       longitude: longitude,
       accuracyM: accuracy,
       speedMs: speed,
+      speedAccuracyMs: speedAccuracy,
       bearingDeg: bearing,
       timestampUs: timestampUs,
     );
@@ -138,6 +173,7 @@ class SessionRecorder {
     _lastGpsSpeed = filtered.speedMs;
     _lastGpsBearing = filtered.bearing;
     _lastGpsAccuracy = accuracy;
+    _lastGpsTimestampUs = timestampUs;
   }
 
   /// Feed barometric pressure at ~10Hz.

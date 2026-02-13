@@ -20,6 +20,7 @@ class SensorService {
     required double speed,
     required double bearing,
     required double accuracy,
+    required double speedAccuracy,
     required int timestampUs,
   })? onGps;
   void Function(double pressureHpa)? onPressure;
@@ -90,7 +91,9 @@ class SensorService {
     }
     _gpsSub = Geolocator.getPositionStream(locationSettings: locationSettings)
         .listen((position) {
-      final now = DateTime.now().microsecondsSinceEpoch;
+      // Use GPS-reported timestamp (satellite time) instead of DateTime.now()
+      // to avoid ~50-200ms callback delivery latency.
+      final timestampUs = position.timestamp.microsecondsSinceEpoch;
       currentSpeedKmh = position.speed * 3.6;
       currentAltitude = position.altitude;
       onGps?.call(
@@ -100,7 +103,8 @@ class SensorService {
         speed: position.speed,
         bearing: position.heading,
         accuracy: position.accuracy,
-        timestampUs: now,
+        speedAccuracy: position.speedAccuracy,
+        timestampUs: timestampUs,
       );
     });
 
