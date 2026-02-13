@@ -20,12 +20,12 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 2400),
     );
 
-    // 0.0–0.4: fade in, 0.4–0.7: hold, 0.7–1.0: fade out
+    // 0.0–0.35: fade in, 0.35–0.7: hold, 0.7–1.0: fade out
     _fadeIn = Tween(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.4, curve: Curves.easeIn)),
+      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.35, curve: Curves.easeIn)),
     );
     _fadeOut = Tween(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0.7, 1.0, curve: Curves.easeOut)),
@@ -50,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (_done) return widget.child;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: const Color(0xFFF5F3EF),
       body: Center(
         child: AnimatedBuilder(
           animation: _controller,
@@ -61,13 +61,11 @@ class _SplashScreenState extends State<SplashScreen>
               child: child,
             );
           },
-          child: const Text(
-            'BH Studios',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 4,
-              color: Color(0xFF4FC3F7),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: Image.asset(
+              'assets/images/bh_studios_logo.png',
+              fit: BoxFit.contain,
             ),
           ),
         ),
