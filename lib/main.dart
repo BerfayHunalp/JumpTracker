@@ -40,7 +40,7 @@ class _SkiTrackerAppState extends ConsumerState<SkiTrackerApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Ski Tracker',
+      title: 'BH Motion',
       theme: SkiTrackerTheme.dark,
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(child: AppRoot()),
