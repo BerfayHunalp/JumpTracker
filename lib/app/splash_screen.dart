@@ -50,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (_done) return widget.child;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EF),
+      backgroundColor: const Color(0xFF121212),
       body: Center(
         child: AnimatedBuilder(
           animation: _controller,
@@ -61,12 +61,10 @@ class _SplashScreenState extends State<SplashScreen>
               child: child,
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48),
-            child: Image.asset(
-              'assets/images/bh_studios_logo.png',
-              fit: BoxFit.contain,
-            ),
+          child: Image.asset(
+            'assets/images/bh_logo_small.png',
+            width: 120,
+            fit: BoxFit.contain,
           ),
         ),
       ),
