@@ -72,8 +72,9 @@ class SensorService {
     final LocationSettings locationSettings;
     if (defaultTargetPlatform == TargetPlatform.android) {
       locationSettings = geo_android.AndroidSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 3,
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 0,
+        intervalDuration: const Duration(milliseconds: 500),
         forceLocationManager: false,
         foregroundNotificationConfig: const geo_android.ForegroundNotificationConfig(
           notificationText: 'Ski Tracker is recording your session',
@@ -83,8 +84,8 @@ class SensorService {
       );
     } else {
       locationSettings = const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 3,
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 0,
       );
     }
     _gpsSub = Geolocator.getPositionStream(locationSettings: locationSettings)

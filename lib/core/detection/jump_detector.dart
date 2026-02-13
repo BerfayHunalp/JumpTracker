@@ -268,9 +268,38 @@ class JumpDetector {
     return jump;
   }
 
-  /// Compute horizontal distance from GPS or fallback to physics estimate.
+  /// Compute horizontal distance using physics-first approach.
+  ///
+  /// During a jump, GPS cannot reliably update mid-air (0.3–3s airtime),
+  /// so speed × time is more accurate than comparing two stale GPS fixes.
   double _computeDistance(SensorFrame landingFrame) {
-    // Method 1: GPS-based (preferred, when both points have GPS)
+    final airtimeS = landingFrame.deltaMs(_takeoffFrame!) / 1000.0;
+
+    // Method 1 (primary): Physics — takeoff speed × airtime
+    final speedMs = _takeoffGpsFrame?.gpsSpeed ?? 0;
+    if (speedMs > 0.5) {
+      final physicsDistance = speedMs * airtimeS;
+
+      // Cross-validate with GPS if both endpoints available
+      if (_takeoffGpsFrame?.latitude != null &&
+          landingFrame.latitude != null) {
+        final gpsDistance = _haversineDistance(
+          _takeoffGpsFrame!.latitude!,
+          _takeoffGpsFrame!.longitude!,
+          landingFrame.latitude!,
+          landingFrame.longitude!,
+        );
+        // If GPS and physics agree within 50%, trust physics.
+        // If they diverge wildly, average them to hedge.
+        if (gpsDistance > 0 &&
+            (physicsDistance / gpsDistance - 1).abs() > 0.5) {
+          return (physicsDistance + gpsDistance) / 2;
+        }
+      }
+      return physicsDistance;
+    }
+
+    // Method 2 (fallback): GPS haversine when no speed data
     if (_takeoffGpsFrame != null &&
         _takeoffGpsFrame!.latitude != null &&
         landingFrame.latitude != null) {
@@ -282,11 +311,7 @@ class JumpDetector {
       );
     }
 
-    // Method 2: Physics estimate from speed * time
-    final speedMs = (_takeoffGpsFrame?.gpsSpeed ?? 0);
-    final airtimeS =
-        landingFrame.deltaMs(_takeoffFrame!) / 1000.0;
-    return speedMs * airtimeS;
+    return 0;
   }
 
   /// Compute jump height from barometer delta or physics fallback.
