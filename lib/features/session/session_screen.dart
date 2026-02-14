@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/models/equipment.dart';
 import '../challenges/challenge_providers.dart';
 import '../equipment/equipment_providers.dart';
@@ -289,38 +288,54 @@ void _showHorsPisteFlow(BuildContext context, WidgetRef ref) {
               style: TextStyle(fontSize: 13, color: Colors.white54, height: 1.5),
             ),
           ),
+          const SizedBox(height: 12),
+
+          // WhatsApp reminder
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF25D366).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF25D366).withValues(alpha: 0.3),
+              ),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.chat, color: Color(0xFF25D366), size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Remember to share your WhatsApp live location with a friend before heading out.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF25D366),
+                      fontWeight: FontWeight.w600,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 24),
 
-          // Action button — opens WhatsApp
+          // Close button
           SizedBox(
             width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                _openWhatsApp();
-              },
-              icon: const Icon(Icons.send, size: 20),
-              label: const Text(
-                'I understand — Open WhatsApp',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
+            child: FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF25D366),
+                backgroundColor: const Color(0xFFFF7043),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Center(
-            child: TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
               child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white38),
+                'I understand',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
               ),
             ),
           ),
@@ -328,13 +343,6 @@ void _showHorsPisteFlow(BuildContext context, WidgetRef ref) {
       ),
     ),
   );
-}
-
-Future<void> _openWhatsApp() async {
-  final uri = Uri.parse('https://wa.me/');
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
 }
 
 // ---------------------------------------------------------------------------
