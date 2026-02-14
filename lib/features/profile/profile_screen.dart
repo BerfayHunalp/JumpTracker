@@ -184,7 +184,7 @@ class ProfileScreen extends ConsumerWidget {
                           label: 'Achievements',
                           sublabelWidget: ref.watch(unlockedCountProvider).when(
                                 data: (count) => Text(
-                                  '$count / 37 unlocked',
+                                  '$count / ${achievements.length} unlocked',
                                   style: const TextStyle(
                                       color: Colors.white38, fontSize: 11),
                                 ),
