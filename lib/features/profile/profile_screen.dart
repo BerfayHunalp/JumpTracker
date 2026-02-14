@@ -9,7 +9,6 @@ import '../achievements/achievements_providers.dart';
 import '../achievements/achievements_screen.dart';
 import '../auth/login_screen.dart';
 import '../about/about_screen.dart';
-import '../emergency/emergency_screen.dart';
 import '../equipment/equipment_screen.dart';
 import '../jump_detail/jump_detail_screen.dart';
 import '../learn/learn_screen.dart';
@@ -235,24 +234,6 @@ class ProfileScreen extends ConsumerWidget {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const EquipmentScreen()),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: _NavigationCard(
-                      icon: Icons.sos,
-                      label: 'Emergency',
-                      sublabelWidget: const Text(
-                        'WhatsApp contacts before off-piste',
-                        style: TextStyle(color: Colors.white38, fontSize: 11),
-                      ),
-                      color: const Color(0xFFEF5350),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const EmergencyScreen()),
                       ),
                     ),
                   ),
