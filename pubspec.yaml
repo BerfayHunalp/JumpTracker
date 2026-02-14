@@ -53,6 +53,9 @@ dependencies:
   # Sharing
   share_plus: ^9.0.0
 
+  # Media / Video (image_picker is mobile-only for video import)
+  image_picker: ^1.0.7
+
   # Audio
   audioplayers: ^5.2.1
 

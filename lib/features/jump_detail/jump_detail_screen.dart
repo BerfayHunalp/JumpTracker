@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/database/database.dart';
 import '../../core/models/trick.dart';
+import '../media/hero_image_screen.dart';
 import '../session/widgets/trick_picker_sheet.dart';
 import 'jump_detail_providers.dart';
 
@@ -39,6 +40,18 @@ class JumpDetailScreen extends ConsumerWidget {
                 pinned: true,
                 expandedHeight: 200,
                 backgroundColor: theme.colorScheme.surface,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.share, size: 22),
+                    tooltip: 'Share Hero Image',
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => HeroImageScreen(jump: jump),
+                      ),
+                    ),
+                  ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     decoration: BoxDecoration(

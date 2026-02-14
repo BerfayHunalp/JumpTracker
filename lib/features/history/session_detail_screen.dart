@@ -8,6 +8,8 @@ import '../../core/database/database.dart';
 import '../../core/models/trick.dart';
 import '../../shared/widgets/stat_card.dart';
 import '../jump_detail/jump_detail_screen.dart';
+import '../media/video_cut_screen.dart';
+import '../weather/weather_widget.dart';
 import 'history_providers.dart';
 
 class SessionDetailScreen extends ConsumerWidget {
@@ -85,6 +87,75 @@ class SessionDetailScreen extends ConsumerWidget {
             loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
             error: (_, __) =>
                 const SliverToBoxAdapter(child: SizedBox.shrink()),
+          ),
+
+          // Weather snapshot
+          gpsAsync.when(
+            data: (points) {
+              if (points.isEmpty) {
+                return const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: WeatherWidget(),
+                  ),
+                );
+              }
+              // Use first GPS point for weather location
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: WeatherWidget(
+                    latitude: points.first.latitude,
+                    longitude: points.first.longitude,
+                  ),
+                ),
+              );
+            },
+            loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          ),
+
+          // Auto-Cut Video button
+          jumpsAsync.when(
+            data: (jumps) {
+              if (jumps.isEmpty) {
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              }
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: sessionAsync.when(
+                    data: (s) => s == null
+                        ? const SizedBox.shrink()
+                        : OutlinedButton.icon(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => VideoCutScreen(
+                                  sessionStart: s.startedAt,
+                                  jumps: jumps,
+                                ),
+                              ),
+                            ),
+                            icon: const Icon(Icons.content_cut, size: 18),
+                            label: Text('Auto-Cut Video (${jumps.length} jumps)'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF4FC3F7),
+                              side: const BorderSide(color: Color(0xFF4FC3F7)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+                ),
+              );
+            },
+            loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
           ),
 
           // GPS map
