@@ -10,7 +10,6 @@ import '../../../core/database/database.dart';
 import '../../../core/sensors/sensors.dart';
 import '../../../core/auth/auth_providers.dart';
 import '../../../core/sync/sync_service.dart';
-import 'sensor_simulator.dart';
 
 const _uuid = Uuid();
 
@@ -67,16 +66,14 @@ class SessionState {
 /// Owns the SessionRecorder, timers, and sensor source.
 /// Persists sessions and jumps to the local database.
 class SessionNotifier extends StateNotifier<SessionState> {
-  final dynamic _sensorSource;
+  final SensorService _sensorSource;
   final SessionRepository _sessionRepo;
   final JumpRepository _jumpRepo;
   final GpsRepository _gpsRepo;
   final SyncService? _syncService;
-  final bool _useMock;
 
   late final SessionRecorder _recorder;
 
-  Timer? _sensorTimer;
   Timer? _uiTimer;
   Timer? _durationTimer;
   DateTime? _startTime;
@@ -87,18 +84,16 @@ class SessionNotifier extends StateNotifier<SessionState> {
   String? get currentSessionId => _currentSessionId;
 
   SessionNotifier({
-    required dynamic sensorSource,
+    required SensorService sensorSource,
     required SessionRepository sessionRepo,
     required JumpRepository jumpRepo,
     required GpsRepository gpsRepo,
     SyncService? syncService,
-    required bool useMock,
   })  : _sensorSource = sensorSource,
         _sessionRepo = sessionRepo,
         _jumpRepo = jumpRepo,
         _gpsRepo = gpsRepo,
         _syncService = syncService,
-        _useMock = useMock,
         super(const SessionState()) {
     _recorder = SessionRecorder(
       onJump: _onJumpDetected,
@@ -125,45 +120,36 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
     _recorder.start();
 
-    if (_useMock) {
-      // Desktop simulation: timer-driven at 100Hz
-      (_sensorSource as SensorSimulator).reset();
-      _sensorTimer = Timer.periodic(const Duration(milliseconds: 10), (_) {
-        _processSensorTick();
-      });
-    } else {
-      // Real sensors: callback-driven
-      final service = _sensorSource as SensorService;
-      service.reset();
-      service.onAccel = (timestampUs, x, y, z) {
-        _recorder.processAccelerometer(timestampUs, x, y, z);
-      };
-      service.onGps = ({
-        required double latitude,
-        required double longitude,
-        required double altitude,
-        required double speed,
-        required double bearing,
-        required double accuracy,
-        required double speedAccuracy,
-        required int timestampUs,
-      }) {
-        _recorder.processGps(
-          latitude: latitude,
-          longitude: longitude,
-          altitude: altitude,
-          speed: speed,
-          bearing: bearing,
-          accuracy: accuracy,
-          speedAccuracy: speedAccuracy,
-          timestampUs: timestampUs,
-        );
-      };
-      service.onPressure = (pressureHpa) {
-        _recorder.processBarometer(pressureHpa);
-      };
-      service.start();
-    }
+    // Real sensors: callback-driven
+    _sensorSource.reset();
+    _sensorSource.onAccel = (timestampUs, x, y, z) {
+      _recorder.processAccelerometer(timestampUs, x, y, z);
+    };
+    _sensorSource.onGps = ({
+      required double latitude,
+      required double longitude,
+      required double altitude,
+      required double speed,
+      required double bearing,
+      required double accuracy,
+      required double speedAccuracy,
+      required int timestampUs,
+    }) {
+      _recorder.processGps(
+        latitude: latitude,
+        longitude: longitude,
+        altitude: altitude,
+        speed: speed,
+        bearing: bearing,
+        accuracy: accuracy,
+        speedAccuracy: speedAccuracy,
+        timestampUs: timestampUs,
+      );
+    };
+    _sensorSource.onPressure = (pressureHpa) {
+      _recorder.processBarometer(pressureHpa);
+    };
+    _sensorSource.start();
 
     // UI state snapshot at ~12Hz
     _uiTimer = Timer.periodic(const Duration(milliseconds: 80), (_) {
@@ -185,14 +171,10 @@ class SessionNotifier extends StateNotifier<SessionState> {
   }
 
   void _stopSession() async {
-    _sensorTimer?.cancel();
     _uiTimer?.cancel();
     _durationTimer?.cancel();
     _recorder.stop();
-
-    if (!_useMock) {
-      (_sensorSource as SensorService).stop();
-    }
+    _sensorSource.stop();
 
     _emitUiSnapshot();
 
@@ -236,36 +218,6 @@ class SessionNotifier extends StateNotifier<SessionState> {
     state = state.copyWith(isRecording: false);
   }
 
-  /// Timer-driven sensor processing for desktop simulation.
-  void _processSensorTick() {
-    final now = DateTime.now().microsecondsSinceEpoch;
-    final sim = _sensorSource as SensorSimulator;
-
-    // Accel at every tick (100Hz)
-    final accel = sim.nextAccel(now);
-    _recorder.processAccelerometer(now, accel.x, accel.y, accel.z);
-
-    // GPS at ~1Hz (every 100th tick)
-    if (_recorder.frameCount % 100 == 0) {
-      final gps = sim.nextGps(now);
-      _recorder.processGps(
-        latitude: gps.lat,
-        longitude: gps.lon,
-        altitude: gps.alt,
-        speed: gps.speed,
-        bearing: gps.bearing,
-        accuracy: gps.accuracy,
-        speedAccuracy: 0.5, // simulated: ~0.5 m/s uncertainty
-        timestampUs: now,
-      );
-    }
-
-    // Baro at ~10Hz (every 10th tick)
-    if (_recorder.frameCount % 10 == 0) {
-      _recorder.processBarometer(sim.currentPressure);
-    }
-  }
-
   void _emitUiSnapshot() {
     final track = _recorder.gpsTrack
         .where((f) => f.latitude != null && f.longitude != null)
@@ -273,12 +225,11 @@ class SessionNotifier extends StateNotifier<SessionState> {
         .toList();
 
     final jumps = _recorder.jumps;
-    final source = _sensorSource;
 
     state = state.copyWith(
-      currentGForce: source.currentGForce,
-      currentSpeedKmh: source.currentSpeedKmh,
-      currentAltitudeM: source.currentAltitude,
+      currentGForce: _sensorSource.currentGForce,
+      currentSpeedKmh: _sensorSource.currentSpeedKmh,
+      currentAltitudeM: _sensorSource.currentAltitude,
       detectorState: _recorder.detectorState,
       jumps: jumps,
       gpsTrack: track,
@@ -320,7 +271,6 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
   @override
   void dispose() {
-    _sensorTimer?.cancel();
     _uiTimer?.cancel();
     _durationTimer?.cancel();
     super.dispose();
@@ -337,7 +287,6 @@ final sessionProvider =
     jumpRepo: ref.watch(jumpRepositoryProvider),
     gpsRepo: ref.watch(gpsRepositoryProvider),
     syncService: ref.watch(_syncServiceProvider),
-    useMock: ref.watch(useMockSensorsProvider),
   );
 });
 

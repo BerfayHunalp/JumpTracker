@@ -113,20 +113,6 @@ class LearnCatalog {
 
     // ---- MOUNTAIN ----
     LearnModule(
-      id: 'isola_fatalities',
-      title: 'Fatal Incidents at Isola',
-      emoji: '\u{1F3D4}',
-      category: 'Mountain',
-      xpReward: 20,
-      paragraphs: [
-        'FEB 2024 \u2014 Combe Grosse (North Face): A 50-year-old experienced ski tourer triggered a wind slab ~100 m wide. Buried under 1.5 m. Despite carrying a DVA and rapid rescue response, he was in cardiac arrest at extraction.',
-        'MAR 2015 \u2014 M\u00E9n\u00E9 / Saint-Sauveur: Two station employees (a 50-year-old patroller and a 58-year-old groomer) were killed by a massive avalanche while securing the domain before opening. If it kills professionals who know the terrain by heart, it can kill anyone.',
-        'DEC 2010 \u2014 Col de la Lombarde: A 19-year-old skier was doing "close to piste" off-piste near the Col. A wind slab released. He was found by avalanche dogs, but too late. The Col is a wind corridor \u2014 the snow is often "plated" (hard on top, hollow below).',
-        'MAR 2009 \u2014 T\u00EAte du M\u00E9n\u00E9: A 26-year-old snowboarder went off-piste when avalanche risk was 4/5 (High). He triggered a slide that swept him over rock cliffs. Risk level 4 is an absolute stop signal.',
-        'DEATH ZONES: Lombarde / Combe Grosse \u2014 the Italian border. Extreme wind creates a wind-slab factory. Most dangerous for triggering a slab just by skiing near the edge of a groomed run. M\u00E9n\u00E9 \u2014 steep and rocky. Avalanches here drag you over rocks, causing fatal trauma before burial.',
-      ],
-    ),
-    LearnModule(
       id: 'snow_physics',
       title: 'Snow Physics & Landing',
       emoji: '\u2744',
@@ -136,7 +122,7 @@ class LearnCatalog {
         'In inline skating the ground is always hard. In off-piste, snow changes every meter. Learning to read it from above is a survival skill.',
         'AVOID: Shiny snow (ice), snow with tiny ripples (wind crust), and depressions around trees (tree wells \u2014 you fall in and can\'t get out).',
         'TARGET: Matte, uniform snow, and especially snow on a slope. A sloped landing absorbs impact; a flat landing destroys knees.',
-        'GOLDEN RULE: Never jump onto flat ground. You need a landing steeper than your flight arc. Dropping 4 m onto flat at 80 kg produces forces that will blow out your knees.',
+        'GOLDEN RULE: Never jump onto flat ground. You need a landing steeper than your flight arc. Dropping 4 m onto flat produces forces that will blow out your knees.',
         'WIND SLABS: Wind transports snow and packs it behind ridges, forming a trap. If the snow makes a "whump" sound (like a drum) under your skis, or cracks shoot out in front of you \u2014 STOP. Turn around or descend straight to safety (tree zone or anchored rocks).',
       ],
     ),
@@ -162,7 +148,7 @@ class LearnCatalog {
       category: 'Backcountry Gear',
       xpReward: 15,
       paragraphs: [
-        'You need a wide ski (to float in powder) with pop (spring for jumping). The sweet spot for a resort like Isola: 105\u2013115 mm waist width.',
+        'You need a wide ski (to float in powder) with pop (spring for jumping).',
         'PROFILE: Double rocker (tip and tail raised). This lets you land switch or bail without catching an edge and planting face-first.',
         'FACTION MANA 3 / PRODIGY 3: The Candide Thovex spirit. Built to be abused. Playful and forgiving, great pop.',
         'ATOMIC BENT CHETLER 110: Very playful, turns on its own, but demands you stay centered. Rewards good technique, punishes backseat skiing.',
@@ -189,7 +175,7 @@ class LearnCatalog {
       category: 'Backcountry Gear',
       xpReward: 15,
       paragraphs: [
-        'FLEX 130: At ~80 kg with athletic background, you need direct power transmission. Below 130 flex the boot collapses in hard carves and absorbs your pop. Above 140 and you can\'t flex enough to absorb landings.',
+        'FLEX 130: For direct power transmission. Below 130 flex the boot collapses in hard carves and absorbs your pop. Above 140 and you can\'t flex enough to absorb landings.',
         'TYPE: Freeride boots have rubber Vibram/Grip Walk soles for hiking to spots without slipping on rocks. Regular race boots have smooth plastic soles.',
         'CABRIO (3-piece) DESIGN: The shell has 3 separate parts instead of the traditional 4-buckle overlap. The flex is progressive \u2014 soft initially, then firm. Freestylers love it for the shin comfort and shock absorption.',
         'MODELS: Dalbello Lupo (best shin comfort, Cabrio design), Lange XT3 (tight and precise), Full Tilt / K2 (great progressive flex, iconic look). Hard spot on your tibia = CHANGE boots. Heel lifting = CHANGE boots.',

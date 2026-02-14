@@ -9,10 +9,12 @@ import '../achievements/achievements_providers.dart';
 import '../achievements/achievements_screen.dart';
 import '../auth/login_screen.dart';
 import '../about/about_screen.dart';
+import '../emergency/emergency_screen.dart';
 import '../equipment/equipment_screen.dart';
 import '../jump_detail/jump_detail_screen.dart';
 import '../learn/learn_screen.dart';
 import '../stats/stats_screen.dart';
+import '../tribute/tribute_screen.dart';
 import 'edit_profile_screen.dart';
 import 'profile_providers.dart';
 import 'widgets/avatar_widget.dart';
@@ -233,6 +235,42 @@ class ProfileScreen extends ConsumerWidget {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const EquipmentScreen()),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: _NavigationCard(
+                      icon: Icons.sos,
+                      label: 'Emergency',
+                      sublabelWidget: const Text(
+                        'Share live location off-piste',
+                        style: TextStyle(color: Colors.white38, fontSize: 11),
+                      ),
+                      color: const Color(0xFFEF5350),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const EmergencyScreen()),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: _NavigationCard(
+                      icon: Icons.church,
+                      label: 'Tribute to Risk Takers',
+                      sublabelWidget: const Text(
+                        'Avalanche fatalities across Europe',
+                        style: TextStyle(color: Colors.white38, fontSize: 11),
+                      ),
+                      color: const Color(0xFFEF5350),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const TributeScreen()),
                       ),
                     ),
                   ),
