@@ -42,7 +42,11 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startSplash() async {
-    await _player.play(AssetSource('wind.mp3'));
+    try {
+      await _player.play(AssetSource('wind.mp3'));
+    } catch (_) {
+      // Audio may fail on some devices — don't crash the app
+    }
 
     // Stay on logo for 4 seconds, then fade to welcome page
     await Future.delayed(const Duration(seconds: 4));

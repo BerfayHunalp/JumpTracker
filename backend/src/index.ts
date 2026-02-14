@@ -6,6 +6,7 @@ import { handleSync } from './routes/sync';
 import { handleFriends } from './routes/friends';
 import { handleLeaderboard } from './routes/leaderboard';
 import { handleEquipment } from './routes/equipment';
+import { handleEmergency } from './routes/emergency';
 import { error } from './utils/response';
 
 export default {
@@ -30,6 +31,8 @@ export default {
         return await handleLeaderboard(request, env, path);
       if (path.startsWith('/equipment/'))
         return await handleEquipment(request, env, path);
+      if (path.startsWith('/emergency/'))
+        return await handleEmergency(request, env, path);
 
       return error('Not Found', 404);
     } catch (err: any) {

@@ -6,6 +6,7 @@ compatibility_date = "2024-12-01"
 binding = "DB"
 database_name = "ski-tracker-db"
 database_id = "998efc84-f5a7-4a5b-b7c1-e412c37206dd"
+migrations_dir = "src/db/migrations"
 
 [vars]
 GOOGLE_CLIENT_ID = "350271156284-cc9t9s71dbod6meu4asi9pst0dg4qj2o.apps.googleusercontent.com"

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JumpTracker - Architecture & Features</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --card: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --primary: #4FC3F7;
+    --accent: #FF7043;
+    --green: #81C784;
+    --red: #EF5350;
+    --yellow: #FFB74D;
+    --purple: #CE93D8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 80px 24px 60px;
+    background: linear-gradient(135deg, #0d1117 0%, #1a2744 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero h1 { font-size: 48px; font-weight: 800; letter-spacing: -1px; }
+  .hero h1 span { color: var(--primary); }
+  .hero .subtitle {
+    font-size: 20px; color: var(--muted); margin-top: 12px; font-weight: 400;
+  }
+  .hero .tech-badges {
+    display: flex; gap: 10px; justify-content: center; margin-top: 28px; flex-wrap: wrap;
+  }
+  .badge {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 20px; font-size: 13px; color: var(--muted);
+  }
+  .badge strong { color: var(--primary); }
+
+  /* Section */
+  section { padding: 60px 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+  .section-title {
+    font-size: 28px; font-weight: 700; margin-bottom: 8px;
+  }
+  .section-title .icon { margin-right: 10px; }
+  .section-desc { color: var(--muted); font-size: 15px; margin-bottom: 32px; }
+
+  /* Navigation tabs */
+  .nav-tabs {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 40px;
+  }
+  .nav-tab {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 16px; text-align: center; transition: all .2s;
+  }
+  .nav-tab:hover { border-color: var(--primary); transform: translateY(-2px); }
+  .nav-tab .tab-icon { font-size: 28px; margin-bottom: 8px; }
+  .nav-tab .tab-name { font-size: 14px; font-weight: 600; }
+  .nav-tab .tab-screen { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .nav-tab.center-tab { border-color: var(--accent); background: rgba(255,112,67,.08); }
+  .nav-tab.center-tab .tab-name { color: var(--accent); }
+
+  /* Feature cards */
+  .features-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px;
+  }
+  .feature-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px; transition: border-color .2s;
+  }
+  .feature-card:hover { border-color: var(--primary); }
+  .feature-card .fc-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+  }
+  .feature-card .fc-icon {
+    width: 42px; height: 42px; border-radius: 10px; display: flex;
+    align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  .feature-card .fc-title { font-size: 17px; font-weight: 700; }
+  .feature-card .fc-status {
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 8px;
+    margin-left: auto;
+  }
+  .status-full { background: rgba(129,199,132,.15); color: var(--green); }
+  .status-soon { background: rgba(255,183,77,.15); color: var(--yellow); }
+  .feature-card .fc-desc { font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+  .feature-card .fc-details { font-size: 13px; }
+  .fc-details summary {
+    color: var(--primary); cursor: pointer; font-weight: 600; font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .fc-details ul { list-style: none; padding-left: 4px; }
+  .fc-details li { padding: 3px 0; color: #c9d1d9; }
+  .fc-details li::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--border); margin-right: 8px; vertical-align: middle; }
+  .fc-details code {
+    background: rgba(79,195,247,.1); color: var(--primary); padding: 1px 5px;
+    border-radius: 4px; font-size: 12px;
+  }
+
+  /* Core architecture */
+  .arch-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
+  }
+  .arch-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px;
+  }
+  .arch-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .arch-card p { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .arch-card .file-list { font-size: 12px; color: #7d8590; }
+  .arch-card .file-list span { display: block; padding: 2px 0; font-family: 'SF Mono', monospace; }
+
+  /* Backend */
+  .endpoint-group { margin-bottom: 24px; }
+  .endpoint-group h4 {
+    font-size: 15px; font-weight: 700; margin-bottom: 10px; color: var(--primary);
+  }
+  .endpoint {
+    display: flex; align-items: center; gap: 10px; padding: 8px 0;
+    border-bottom: 1px solid rgba(48,54,61,.5); font-size: 13px;
+  }
+  .endpoint:last-child { border-bottom: none; }
+  .method {
+    font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px;
+    min-width: 50px; text-align: center; font-family: monospace;
+  }
+  .method-get { background: rgba(129,199,132,.15); color: var(--green); }
+  .method-post { background: rgba(79,195,247,.15); color: var(--primary); }
+  .method-put { background: rgba(206,147,216,.15); color: var(--purple); }
+  .method-patch { background: rgba(255,183,77,.15); color: var(--yellow); }
+  .method-delete { background: rgba(239,83,80,.15); color: var(--red); }
+  .endpoint .path { font-family: 'SF Mono', monospace; color: var(--text); }
+  .endpoint .edesc { color: var(--muted); margin-left: auto; }
+
+  /* DB Schema */
+  .schema-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
+  }
+  .schema-table {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden;
+  }
+  .schema-table .st-header {
+    padding: 12px 16px; background: rgba(79,195,247,.06);
+    border-bottom: 1px solid var(--border);
+    font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .schema-table .st-cols { padding: 10px 16px; }
+  .schema-table .st-col {
+    font-size: 13px; padding: 4px 0; font-family: 'SF Mono', monospace;
+    display: flex; gap: 8px;
+  }
+  .st-col .col-name { color: var(--text); min-width: 140px; }
+  .st-col .col-type { color: var(--muted); font-size: 12px; }
+  .st-col .col-pk { color: var(--yellow); font-size: 11px; font-weight: 600; }
+  .st-col .col-fk { color: var(--purple); font-size: 11px; font-weight: 600; }
+
+  /* Deps */
+  .deps-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;
+  }
+  .dep-group {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px;
+  }
+  .dep-group h4 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--primary); }
+  .dep-item {
+    font-size: 13px; padding: 4px 0; display: flex; justify-content: space-between;
+  }
+  .dep-item .dep-name { font-family: 'SF Mono', monospace; }
+  .dep-item .dep-ver { color: var(--muted); font-size: 12px; }
+
+  /* Flow diagram (ASCII art) */
+  .flow-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; overflow-x: auto;
+  }
+  .flow-box pre {
+    font-family: 'SF Mono', Consolas, monospace; font-size: 13px; line-height: 1.5;
+    color: var(--muted);
+  }
+  .flow-box pre strong { color: var(--primary); font-weight: 700; }
+  .flow-box pre em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 32px; }
+    .nav-tabs { grid-template-columns: repeat(3, 1fr); }
+    .features-grid, .arch-grid, .schema-grid, .deps-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<header class="hero">
+  <h1><span>Jump</span>Tracker</h1>
+  <p class="subtitle">Ski jump tracking PWA &mdash; Airtime, Distance, Height, Speed</p>
+  <div class="tech-badges">
+    <span class="badge"><strong>Flutter</strong> 3.16+</span>
+    <span class="badge"><strong>Dart</strong> 3.2+</span>
+    <span class="badge"><strong>Riverpod</strong> 2.4</span>
+    <span class="badge"><strong>Drift</strong> SQLite</span>
+    <span class="badge"><strong>Cloudflare</strong> Workers</span>
+    <span class="badge"><strong>D1</strong> Database</span>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ═══════════════════════ NAVIGATION ═══════════════════════ -->
+<section>
+  <h2 class="section-title">Navigation Structure</h2>
+  <p class="section-desc">5-tab bottom navigation &mdash; Profile sub-screens accessible via navigation cards</p>
+
+  <div class="nav-tabs">
+    <div class="nav-tab">
+      <div class="tab-icon">&#128203;</div>
+      <div class="tab-name">Sessions</div>
+      <div class="tab-screen">HistoryScreen</div>
+    </div>
+    <div class="nav-tab">
+      <div class="tab-icon">&#127935;</div>
+      <div class="tab-name">Tricks</div>
+      <div class="tab-screen">TrickRepertoireScreen</div>
+    </div>
+    <div class="nav-tab center-tab">
+      <div class="tab-icon">&#9899;</div>
+      <div class="tab-name">Record</div>
+      <div class="tab-screen">SessionScreen</div>
+    </div>
+    <div class="nav-tab">
+      <div class="tab-icon">&#128101;</div>
+      <div class="tab-name">Community</div>
+      <div class="tab-screen">CommunityScreen</div>
+    </div>
+    <div class="nav-tab">
+      <div class="tab-icon">&#128100;</div>
+      <div class="tab-name">Profile</div>
+      <div class="tab-screen">ProfileScreen</div>
+    </div>
+  </div>
+
+  <div class="flow-box">
+    <pre>
+<strong>Profile</strong> sub-navigation:
+  &#9492;&#9472; Achievements    &#9492;&#9472; Statistics     &#9492;&#9472; My Equipment
+  &#9492;&#9472; Emergency       &#9492;&#9472; Learn          &#9492;&#9472; About
+  &#9492;&#9472; Personal Records (best jumps)
+  &#9492;&#9472; Edit Profile / Sign Out
+
+<strong>Session Detail</strong>: HistoryScreen &#8594; tap card &#8594; SessionDetailScreen &#8594; jump detail
+<strong>Community</strong>: CommunityScreen &#8594; FriendListScreen / AddFriendScreen
+<strong>Auth Gate</strong>: AppRoot checks authState &#8594; show AppShell (always, guest or logged in)
+    </pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════ FEATURES ═══════════════════════ -->
+<section>
+  <h2 class="section-title">All Features</h2>
+  <p class="section-desc">15 features &mdash; 12 fully implemented, 2 coming soon, 1 stub</p>
+
+  <div class="features-grid">
+
+    <!-- Session Recording -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(239,83,80,.12);color:var(--red);">&#9899;</div>
+        <div>
+          <div class="fc-title">Session Recording</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">Real-time ski session recording with live sensor data, jump detection, and GPS tracking at 100Hz accelerometer + 1Hz GPS.</div>
+      <details class="fc-details">
+        <summary>Widgets & Providers</summary>
+        <ul>
+          <li><code>SessionScreen</code> &mdash; live dashboard</li>
+          <li><code>SessionControlButton</code> &mdash; start / stop</li>
+          <li><code>LiveStatsBar</code> &mdash; speed, altitude, airtime</li>
+          <li><code>GForceGauge</code> &mdash; real-time G-force</li>
+          <li><code>MiniMap</code> &mdash; GPS track (flutter_map)</li>
+          <li><code>LastJumpCard</code> &mdash; most recent jump</li>
+          <li><code>sessionProvider</code> &mdash; core StateNotifier</li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Jump Detection -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(79,195,247,.12);color:var(--primary);">&#9878;</div>
+        <div>
+          <div class="fc-title">Jump Detection Engine</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">FSM-based real-time jump detection. States: skiing &rarr; freefallPending &rarr; airborne &rarr; cooldown. Computes airtime, height (baro), distance (GPS), landing G-force.</div>
+      <details class="fc-details">
+        <summary>Algorithm Details</summary>
+        <ul>
+          <li>Takeoff: 3+ consecutive samples &lt; <code>0.4G</code></li>
+          <li>Landing: spike &gt; <code>1.8G</code></li>
+          <li>Min airtime: <code>250ms</code> &mdash; Max: <code>8000ms</code></li>
+          <li>Cooldown: <code>500ms</code> anti-bounce</li>
+          <li><code>JumpDetector</code> + <code>SessionRecorder</code></li>
+          <li><code>AccelFilter</code> + <code>GpsKalmanFilter</code></li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- History -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(129,199,132,.12);color:var(--green);">&#128203;</div>
+        <div>
+          <div class="fc-title">History & Sessions</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">Browse all past sessions with date, jump count, duration, max airtime, and resort name. Tap into session detail for per-jump breakdown and GPS map replay.</div>
+      <details class="fc-details">
+        <summary>Screens & Providers</summary>
+        <ul>
+          <li><code>HistoryScreen</code> &mdash; session list</li>
+          <li><code>SessionDetailScreen</code> &mdash; detailed view + map</li>
+          <li><code>sessionListProvider</code> &mdash; FutureProvider (DB)</li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Tricks -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(206,147,216,.12);color:var(--purple);">&#127935;</div>
+        <div>
+          <div class="fc-title">Tricks & Mastery</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">40+ tricks across 7 categories (Spins, Flips, Grabs, Freestyle, Rails, Backcountry, Other). XP-based leveling from Tourist to Pro. 5 mastery states per trick.</div>
+      <details class="fc-details">
+        <summary>Progression System</summary>
+        <ul>
+          <li>Mastery: Locked &rarr; Attempted &rarr; Working &rarr; Landed &rarr; Mastered</li>
+          <li>XP rewards: 0 / 5 / 5 / 15 / 30</li>
+          <li>Levels: Tourist &rarr; Beginner &rarr; Apprentice &rarr; Rider &rarr; Freestyler &rarr; Shredder &rarr; Ripper &rarr; Pro</li>
+          <li><code>trickMasteryProvider</code>, <code>trickXpProvider</code>, <code>trickLevelProvider</code></li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Profile -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(79,195,247,.12);color:var(--primary);">&#128100;</div>
+        <div>
+          <div class="fc-title">Profile & Stats</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">User profile hub with lifetime stats (total jumps, sessions, vertical, max airtime), personal records (best airtime, height, distance, score), and navigation to all sub-features.</div>
+      <details class="fc-details">
+        <summary>Details</summary>
+        <ul>
+          <li><code>ProfileScreen</code> &mdash; collapsible header, stats grid, nav cards</li>
+          <li><code>EditProfileScreen</code> &mdash; edit nickname, avatar</li>
+          <li><code>profileStatsProvider</code>, <code>bestJumpsProvider</code></li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Community -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(255,183,77,.12);color:var(--yellow);">&#128101;</div>
+        <div>
+          <div class="fc-title">Community & Leaderboards</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">Friend management via invite codes (7-char, 30-day expiry). Period-based leaderboards: week / season / all-time. Ranked by total score.</div>
+      <details class="fc-details">
+        <summary>Details</summary>
+        <ul>
+          <li><code>CommunityScreen</code> &mdash; leaderboard + period selector</li>
+          <li><code>FriendListScreen</code>, <code>AddFriendScreen</code></li>
+          <li><code>InviteShareCard</code> &mdash; share via WhatsApp/SMS/etc.</li>
+          <li>Auth-gated (shows sign-in prompt if guest)</li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Equipment -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(129,199,132,.12);color:var(--green);">&#129515;</div>
+        <div>
+          <div class="fc-title">Equipment Checklist</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">50+ items across 3 types (Equipment, Protection, Security) and 6 body zones. Ownership tracking, shop URLs, pricing, budget tracking. Filterable by type, zone, status, price.</div>
+      <details class="fc-details">
+        <summary>Details</summary>
+        <ul>
+          <li><code>EquipmentScreen</code> &mdash; filters, zone sections, summary card</li>
+          <li>Zones: T&ecirc;te, Torse, Dos, Mains, Jambes, Pieds</li>
+          <li><code>equipmentProvider</code> &mdash; offline-first, synced</li>
+          <li>Shop URL + price editing per item</li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Emergency -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(239,83,80,.12);color:var(--red);">&#127464;</div>
+        <div>
+          <div class="fc-title">Emergency & Safety</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">Off-piste safety flow: add up to 2 emergency contacts, multi-step warning modal (education check, gear check, avalanche facts, GPS limits, solo warning), then share live WhatsApp location.</div>
+      <details class="fc-details">
+        <summary>Safety Flow</summary>
+        <ul>
+          <li>Education completion check (Learn modules)</li>
+          <li>Security gear ownership check</li>
+          <li>Avalanche risk education (stats, survival time)</li>
+          <li>GPS accuracy warning (50-200m in mountains)</li>
+          <li>Solo skiing warning</li>
+          <li>WhatsApp deep link: <code>wa.me/{phone}?text=...</code></li>
+          <li>Local-only contacts (SharedPreferences)</li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Learn -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(79,195,247,.12);color:var(--primary);">&#128218;</div>
+        <div>
+          <div class="fc-title">Learn Modules</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">11 bite-sized lessons across 3 categories: Security, Mountain, Backcountry Gear. XP rewards per lesson. Progress tracked locally.</div>
+      <details class="fc-details">
+        <summary>Details</summary>
+        <ul>
+          <li><code>LearnScreen</code> &mdash; category-grouped lessons</li>
+          <li><code>LearnCatalog</code> &mdash; 11 modules with rich content</li>
+          <li><code>learnProgressProvider</code> &mdash; Set&lt;String&gt; of completed IDs</li>
+          <li>Referenced by Emergency screen for education check</li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Auth -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(255,183,77,.12);color:var(--yellow);">&#128274;</div>
+        <div>
+          <div class="fc-title">Authentication</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">Google Sign-In, Apple Sign-In, and email/password registration. JWT-based sessions stored in flutter_secure_storage. Guest mode supported.</div>
+      <details class="fc-details">
+        <summary>Details</summary>
+        <ul>
+          <li><code>LoginScreen</code> &mdash; register/login toggle</li>
+          <li><code>authStateProvider</code> &mdash; Loading / Authenticated / Unauthenticated / Error</li>
+          <li><code>ApiClient</code> auto-injects Bearer token</li>
+          <li>Provider linking (Google + Apple on same account)</li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Permissions -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(206,147,216,.12);color:var(--purple);">&#128276;</div>
+        <div>
+          <div class="fc-title">Permissions Flow</div>
+        </div>
+        <span class="fc-status status-full">FULL</span>
+      </div>
+      <div class="fc-desc">Guided permission request: precise location, background location ("Always Allow"), notifications, battery optimization exemption, motion & activity recognition.</div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(255,183,77,.12);color:var(--yellow);">&#127942;</div>
+        <div>
+          <div class="fc-title">Achievements</div>
+        </div>
+        <span class="fc-status status-soon">COMING SOON</span>
+      </div>
+      <div class="fc-desc">Badge system based on milestones and trick progression. 37 achievements planned. Currently shows "X / 37 unlocked" in profile.</div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="feature-card">
+      <div class="fc-header">
+        <div class="fc-icon" style="background:rgba(255,183,77,.12);color:var(--yellow);">&#128200;</div>
+        <div>
+          <div class="fc-title">Statistics Charts</div>
+        </div>
+        <span class="fc-status status-soon">COMING SOON</span>
+      </div>
+      <div class="fc-desc">Aggregated analytics and charts using fl_chart. Planned: jump distribution, airtime trends, session frequency, altitude profiles.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════ CORE ARCHITECTURE ═══════════════════════ -->
+<section>
+  <h2 class="section-title">Core Architecture</h2>
+  <p class="section-desc">Feature-based directory structure under <code>lib/</code></p>
+
+  <div class="flow-box" style="margin-bottom:32px;">
+    <pre>
+lib/
+ &#9500;&#9472;&#9472; <strong>app/</strong>              router.dart, theme.dart
+ &#9500;&#9472;&#9472; <strong>core/</strong>
+ &#9474;    &#9500;&#9472;&#9472; auth/          auth_service, auth_state, user_model, providers
+ &#9474;    &#9500;&#9472;&#9472; database/      app_database (Drift), repositories (session, jump, gps)
+ &#9474;    &#9500;&#9472;&#9472; detection/     <em>jump_detector</em> (FSM), session_recorder, accel_filter, gps_filter
+ &#9474;    &#9500;&#9472;&#9472; models/        jump, gps_point, equipment, sensor_frame, trick
+ &#9474;    &#9500;&#9472;&#9472; network/       api_client (JWT), api_exceptions
+ &#9474;    &#9500;&#9472;&#9472; sensors/       sensor_service (accelerometer, gyro, baro, GPS)
+ &#9474;    &#9492;&#9472;&#9472; sync/          sync_service (upload unsynced sessions)
+ &#9500;&#9472;&#9472; <strong>features/</strong>
+ &#9474;    &#9500;&#9472;&#9472; about/         &#9500;&#9472;&#9472; achievements/  &#9500;&#9472;&#9472; auth/
+ &#9474;    &#9500;&#9472;&#9472; community/     &#9500;&#9472;&#9472; emergency/     &#9500;&#9472;&#9472; equipment/
+ &#9474;    &#9500;&#9472;&#9472; history/       &#9500;&#9472;&#9472; jump_detail/   &#9500;&#9472;&#9472; learn/
+ &#9474;    &#9500;&#9472;&#9472; permissions/   &#9500;&#9472;&#9472; profile/       &#9500;&#9472;&#9472; session/
+ &#9474;    &#9500;&#9472;&#9472; stats/         &#9492;&#9472;&#9472; tricks/
+ &#9500;&#9472;&#9472; <strong>shared/</strong>           widgets/ (stat_card)
+ &#9492;&#9472;&#9472; main.dart
+    </pre>
+  </div>
+
+  <div class="arch-grid">
+    <div class="arch-card">
+      <h4>&#9881; Sensors</h4>
+      <p>Real hardware sensors via <code>sensors_plus</code> + <code>geolocator</code>. Accelerometer at 100Hz, GPS at ~1-2Hz, barometer at ~10Hz.</p>
+      <div class="file-list">
+        <span>core/sensors/sensor_service.dart</span>
+        <span>core/sensors/sensors.dart</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <h4>&#9889; Detection</h4>
+      <p>Finite state machine jump detector with configurable thresholds. Kalman filter for GPS smoothing. Accel low-pass filter for noise.</p>
+      <div class="file-list">
+        <span>core/detection/jump_detector.dart</span>
+        <span>core/detection/session_recorder.dart</span>
+        <span>core/detection/gps_filter.dart</span>
+        <span>core/detection/accel_filter.dart</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <h4>&#128451; Database</h4>
+      <p>Drift ORM over SQLite. Tables: sessions, jumps, gps_points, runs. Platform-specific connection (native / web).</p>
+      <div class="file-list">
+        <span>core/database/app_database.dart</span>
+        <span>core/database/session_repository.dart</span>
+        <span>core/database/jump_repository.dart</span>
+        <span>core/database/gps_repository.dart</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <h4>&#128274; Auth</h4>
+      <p>Google + Apple + Email auth. JWT stored in secure storage. Sealed auth states. Auto-restore on app start.</p>
+      <div class="file-list">
+        <span>core/auth/auth_service.dart</span>
+        <span>core/auth/auth_state.dart</span>
+        <span>core/auth/user_model.dart</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <h4>&#127760; Network</h4>
+      <p>HTTP client with JWT Bearer injection. Base URL: <code>ski-tracker-api.apexdiligence.workers.dev</code></p>
+      <div class="file-list">
+        <span>core/network/api_client.dart</span>
+        <span>core/network/api_exceptions.dart</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <h4>&#128260; Sync</h4>
+      <p>Offline-first: record locally, sync to cloud when connected. Uploads unsynced sessions + jumps. Computes scores server-side.</p>
+      <div class="file-list">
+        <span>core/sync/sync_service.dart</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ DATA FLOW ═══════════════════════ -->
+<section>
+  <h2 class="section-title">Data Flow</h2>
+  <p class="section-desc">From hardware sensors to UI and cloud</p>
+
+  <div class="flow-box">
+    <pre>
+<strong>SENSORS</strong>                    <strong>DETECTION</strong>                   <strong>STORAGE</strong>                    <strong>CLOUD</strong>
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;        &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;       &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;       &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474; Accelerometer  &#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9658; &#9474; <em>AccelFilter</em>      &#9474;       &#9474;                 &#9474;       &#9474;                &#9474;
+&#9474; (100Hz)        &#9474;        &#9474;   &#9474;               &#9474;       &#9474;                 &#9474;       &#9474;                &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;        &#9474;   &#9660;               &#9474;       &#9474;                 &#9474;       &#9474;                &#9474;
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;        &#9474; <em>JumpDetector</em>     &#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9658; SQLite (Drift)  &#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9658; SyncService    &#9474;
+&#9474; GPS (1-2Hz)    &#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9658; &#9474; <em>SessionRecorder</em>  &#9474;       &#9474; sessions        &#9474;       &#9474; POST /sync     &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;        &#9474;   &#9474;               &#9474;       &#9474; jumps           &#9474;       &#9474; &#8594; D1 database  &#9474;
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;        &#9474;   &#9660;               &#9474;       &#9474; gps_points      &#9474;       &#9474; &#8594; leaderboard  &#9474;
+&#9474; Barometer      &#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9658; &#9474; <em>GpsKalmanFilter</em> &#9474;       &#9474;                 &#9474;       &#9474;                &#9474;
+&#9474; (~10Hz)        &#9474;        &#9474;                  &#9474;       &#9474;                 &#9474;       &#9474;                &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;        &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;       &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;       &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+                                      &#9474;
+                                      &#9660;
+                              &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+                              &#9474; <strong>UI @ 12Hz</strong>        &#9474;
+                              &#9474; sessionProvider  &#9474;
+                              &#9474; &#8594; speed, alt     &#9474;
+                              &#9474; &#8594; G-force, state &#9474;
+                              &#9474; &#8594; jumps list     &#9474;
+                              &#9474; &#8594; GPS track      &#9474;
+                              &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+
+<strong>Jump Score Formula:</strong>
+  score = (airtimeMs / 100) &times; 40 + heightM &times; 30 + distanceM &times; 10
+    </pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════ BACKEND API ═══════════════════════ -->
+<section>
+  <h2 class="section-title">Backend API</h2>
+  <p class="section-desc">Cloudflare Worker + D1 database &mdash; <code>ski-tracker-api.apexdiligence.workers.dev</code></p>
+
+  <div class="feature-card" style="margin-bottom:20px;">
+    <div class="endpoint-group">
+      <h4>Auth</h4>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="path">/auth/google</span><span class="edesc">Google ID token &rarr; JWT</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="path">/auth/apple</span><span class="edesc">Apple ID token &rarr; JWT</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="path">/auth/register</span><span class="edesc">Email/password sign-up</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="path">/auth/login</span><span class="edesc">Email/password login</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="path">/auth/refresh</span><span class="edesc">Refresh JWT</span></div>
+    </div>
+    <div class="endpoint-group">
+      <h4>Users</h4>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="path">/users/me</span><span class="edesc">Current user + stats</span></div>
+      <div class="endpoint"><span class="method method-patch">PATCH</span><span class="path">/users/me</span><span class="edesc">Update nickname, avatar</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="path">/users/:id</span><span class="edesc">Public profile</span></div>
+    </div>
+    <div class="endpoint-group">
+      <h4>Sync</h4>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="path">/sync/sessions</span><span class="edesc">Bulk upload sessions + jumps</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="path">/sync/sessions</span><span class="edesc">List synced sessions</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="path">/sync/sessions/:id</span><span class="edesc">Session detail with jumps</span></div>
+    </div>
+    <div class="endpoint-group">
+      <h4>Friends</h4>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="path">/friends</span><span class="edesc">List friendships</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="path">/friends/invite</span><span class="edesc">Generate 7-char invite code</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="path">/friends/accept</span><span class="edesc">Redeem invite code</span></div>
+      <div class="endpoint"><span class="method method-delete">DELETE</span><span class="path">/friends/:id</span><span class="edesc">Remove friendship</span></div>
+    </div>
+    <div class="endpoint-group">
+      <h4>Leaderboard</h4>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="path">/leaderboard/friends?period=</span><span class="edesc">Friend leaderboard (week/season/alltime)</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="path">/leaderboard/global?period=</span><span class="edesc">Global leaderboard</span></div>
+    </div>
+    <div class="endpoint-group">
+      <h4>Equipment</h4>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="path">/equipment/</span><span class="edesc">Fetch equipment state</span></div>
+      <div class="endpoint"><span class="method method-put">PUT</span><span class="path">/equipment/</span><span class="edesc">Bulk upsert from client</span></div>
+      <div class="endpoint"><span class="method method-patch">PATCH</span><span class="path">/equipment/:id</span><span class="edesc">Update single item</span></div>
+    </div>
+    <div class="endpoint-group">
+      <h4>Emergency</h4>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="path">/emergency/contacts</span><span class="edesc">List contacts (max 2)</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="path">/emergency/contacts</span><span class="edesc">Add contact</span></div>
+      <div class="endpoint"><span class="method method-delete">DELETE</span><span class="path">/emergency/contacts/:id</span><span class="edesc">Remove contact</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ DATABASE SCHEMA ═══════════════════════ -->
+<section>
+  <h2 class="section-title">Database Schema</h2>
+  <p class="section-desc">Backend D1 (SQLite) &mdash; 3 migrations</p>
+
+  <div class="schema-grid">
+    <div class="schema-table">
+      <div class="st-header">&#128100; users</div>
+      <div class="st-cols">
+        <div class="st-col"><span class="col-name">id</span><span class="col-type">TEXT</span><span class="col-pk">PK</span></div>
+        <div class="st-col"><span class="col-name">google_sub</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">apple_sub</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">email</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">nickname</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">avatar_index</span><span class="col-type">INTEGER</span></div>
+        <div class="st-col"><span class="col-name">password_hash</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">created_at</span><span class="col-type">TEXT</span></div>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="st-header">&#128203; synced_sessions</div>
+      <div class="st-cols">
+        <div class="st-col"><span class="col-name">id</span><span class="col-type">TEXT</span><span class="col-pk">PK</span></div>
+        <div class="st-col"><span class="col-name">user_id</span><span class="col-type">TEXT</span><span class="col-fk">FK</span></div>
+        <div class="st-col"><span class="col-name">started_at</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">ended_at</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">resort_name</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">total_jumps</span><span class="col-type">INTEGER</span></div>
+        <div class="st-col"><span class="col-name">max_airtime_ms</span><span class="col-type">REAL</span></div>
+        <div class="st-col"><span class="col-name">total_score</span><span class="col-type">REAL</span></div>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="st-header">&#9878; synced_jumps</div>
+      <div class="st-cols">
+        <div class="st-col"><span class="col-name">id</span><span class="col-type">TEXT</span><span class="col-pk">PK</span></div>
+        <div class="st-col"><span class="col-name">session_id</span><span class="col-type">TEXT</span><span class="col-fk">FK</span></div>
+        <div class="st-col"><span class="col-name">airtime_ms</span><span class="col-type">INTEGER</span></div>
+        <div class="st-col"><span class="col-name">distance_m</span><span class="col-type">REAL</span></div>
+        <div class="st-col"><span class="col-name">height_m</span><span class="col-type">REAL</span></div>
+        <div class="st-col"><span class="col-name">speed_kmh</span><span class="col-type">REAL</span></div>
+        <div class="st-col"><span class="col-name">landing_g_force</span><span class="col-type">REAL</span></div>
+        <div class="st-col"><span class="col-name">score</span><span class="col-type">REAL</span></div>
+        <div class="st-col"><span class="col-name">trick_label</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">lat/lon_takeoff</span><span class="col-type">REAL</span></div>
+        <div class="st-col"><span class="col-name">lat/lon_landing</span><span class="col-type">REAL</span></div>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="st-header">&#128101; friendships</div>
+      <div class="st-cols">
+        <div class="st-col"><span class="col-name">id</span><span class="col-type">TEXT</span><span class="col-pk">PK</span></div>
+        <div class="st-col"><span class="col-name">user_id_a</span><span class="col-type">TEXT</span><span class="col-fk">FK</span></div>
+        <div class="st-col"><span class="col-name">user_id_b</span><span class="col-type">TEXT</span><span class="col-fk">FK</span></div>
+        <div class="st-col"><span class="col-name">status</span><span class="col-type">TEXT</span></div>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="st-header">&#127942; leaderboard_cache</div>
+      <div class="st-cols">
+        <div class="st-col"><span class="col-name">user_id</span><span class="col-type">TEXT</span><span class="col-fk">FK</span></div>
+        <div class="st-col"><span class="col-name">period</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">total_score</span><span class="col-type">REAL</span></div>
+        <div class="st-col"><span class="col-name">total_jumps</span><span class="col-type">INTEGER</span></div>
+        <div class="st-col"><span class="col-name">best_airtime_ms</span><span class="col-type">REAL</span></div>
+        <div class="st-col"><span class="col-name">session_count</span><span class="col-type">INTEGER</span></div>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="st-header">&#129515; user_equipment</div>
+      <div class="st-cols">
+        <div class="st-col"><span class="col-name">user_id</span><span class="col-type">TEXT</span><span class="col-pk">PK</span></div>
+        <div class="st-col"><span class="col-name">equipment_id</span><span class="col-type">TEXT</span><span class="col-pk">PK</span></div>
+        <div class="st-col"><span class="col-name">owned</span><span class="col-type">BOOLEAN</span></div>
+        <div class="st-col"><span class="col-name">shop_url</span><span class="col-type">TEXT</span></div>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="st-header">&#128276; invite_codes</div>
+      <div class="st-cols">
+        <div class="st-col"><span class="col-name">code</span><span class="col-type">TEXT(7)</span><span class="col-pk">PK</span></div>
+        <div class="st-col"><span class="col-name">user_id</span><span class="col-type">TEXT</span><span class="col-fk">FK</span></div>
+        <div class="st-col"><span class="col-name">expires_at</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">used_by</span><span class="col-type">TEXT</span></div>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="st-header">&#127464; emergency_contacts</div>
+      <div class="st-cols">
+        <div class="st-col"><span class="col-name">id</span><span class="col-type">TEXT</span><span class="col-pk">PK</span></div>
+        <div class="st-col"><span class="col-name">user_id</span><span class="col-type">TEXT</span><span class="col-fk">FK</span></div>
+        <div class="st-col"><span class="col-name">name</span><span class="col-type">TEXT</span></div>
+        <div class="st-col"><span class="col-name">phone</span><span class="col-type">TEXT</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ DEPENDENCIES ═══════════════════════ -->
+<section>
+  <h2 class="section-title">Dependencies</h2>
+  <p class="section-desc">Flutter packages from pubspec.yaml</p>
+
+  <div class="deps-grid">
+    <div class="dep-group">
+      <h4>State Management</h4>
+      <div class="dep-item"><span class="dep-name">flutter_riverpod</span><span class="dep-ver">^2.4.9</span></div>
+      <div class="dep-item"><span class="dep-name">riverpod_annotation</span><span class="dep-ver">^2.3.3</span></div>
+    </div>
+    <div class="dep-group">
+      <h4>Database</h4>
+      <div class="dep-item"><span class="dep-name">drift</span><span class="dep-ver">^2.14.1</span></div>
+      <div class="dep-item"><span class="dep-name">sqlite3_flutter_libs</span><span class="dep-ver">^0.5.18</span></div>
+      <div class="dep-item"><span class="dep-name">path_provider</span><span class="dep-ver">^2.1.1</span></div>
+    </div>
+    <div class="dep-group">
+      <h4>Sensors & Location</h4>
+      <div class="dep-item"><span class="dep-name">sensors_plus</span><span class="dep-ver">^4.0.2</span></div>
+      <div class="dep-item"><span class="dep-name">geolocator</span><span class="dep-ver">^10.1.0</span></div>
+      <div class="dep-item"><span class="dep-name">permission_handler</span><span class="dep-ver">^11.1.0</span></div>
+    </div>
+    <div class="dep-group">
+      <h4>UI & Maps</h4>
+      <div class="dep-item"><span class="dep-name">fl_chart</span><span class="dep-ver">^0.66.0</span></div>
+      <div class="dep-item"><span class="dep-name">flutter_map</span><span class="dep-ver">^6.1.0</span></div>
+      <div class="dep-item"><span class="dep-name">latlong2</span><span class="dep-ver">^0.9.0</span></div>
+    </div>
+    <div class="dep-group">
+      <h4>Authentication</h4>
+      <div class="dep-item"><span class="dep-name">google_sign_in</span><span class="dep-ver">^6.2.1</span></div>
+      <div class="dep-item"><span class="dep-name">sign_in_with_apple</span><span class="dep-ver">^6.1.0</span></div>
+      <div class="dep-item"><span class="dep-name">flutter_secure_storage</span><span class="dep-ver">^9.2.2</span></div>
+    </div>
+    <div class="dep-group">
+      <h4>Utilities</h4>
+      <div class="dep-item"><span class="dep-name">http</span><span class="dep-ver">^1.2.0</span></div>
+      <div class="dep-item"><span class="dep-name">url_launcher</span><span class="dep-ver">^6.2.4</span></div>
+      <div class="dep-item"><span class="dep-name">share_plus</span><span class="dep-ver">^9.0.0</span></div>
+      <div class="dep-item"><span class="dep-name">shared_preferences</span><span class="dep-ver">^2.2.2</span></div>
+      <div class="dep-item"><span class="dep-name">uuid</span><span class="dep-ver">^4.2.1</span></div>
+      <div class="dep-item"><span class="dep-name">intl</span><span class="dep-ver">^0.19.0</span></div>
+      <div class="dep-item"><span class="dep-name">audioplayers</span><span class="dep-ver">^5.2.1</span></div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer style="text-align:center; padding:40px; color:var(--muted); font-size:13px; border-top:1px solid var(--border);">
+  JumpTracker &mdash; Built with Flutter & Cloudflare Workers &mdash; Architecture doc generated Feb 2026
+</footer>
+
+</body>
+</html>

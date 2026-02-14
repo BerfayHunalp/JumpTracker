@@ -10,22 +10,25 @@ const _stateKey = 'equipment_state_v2';
 const _profileSetupKey = 'equipment_profile_setup_done';
 const _legacyOwnedKey = 'equipment_owned';
 
-/// Per-item user state: ownership + optional shop URL.
+/// Per-item user state: ownership + optional shop URL + optional price.
 class EquipmentUserState {
   final bool owned;
   final String? shopUrl;
+  final double? price;
 
-  const EquipmentUserState({this.owned = false, this.shopUrl});
+  const EquipmentUserState({this.owned = false, this.shopUrl, this.price});
 
   Map<String, dynamic> toJson() => {
         'owned': owned,
         if (shopUrl != null) 'shopUrl': shopUrl,
+        if (price != null) 'price': price,
       };
 
   factory EquipmentUserState.fromJson(Map<String, dynamic> json) =>
       EquipmentUserState(
         owned: json['owned'] as bool? ?? false,
         shopUrl: json['shopUrl'] as String?,
+        price: (json['price'] as num?)?.toDouble(),
       );
 }
 
@@ -153,7 +156,7 @@ class EquipmentNotifier extends StateNotifier<Map<String, EquipmentUserState>> {
   Future<void> toggleOwned(String itemId) async {
     final current = state[itemId] ?? const EquipmentUserState();
     final updated = Map<String, EquipmentUserState>.from(state);
-    updated[itemId] = EquipmentUserState(owned: !current.owned, shopUrl: current.shopUrl);
+    updated[itemId] = EquipmentUserState(owned: !current.owned, shopUrl: current.shopUrl, price: current.price);
     state = updated;
     await _save();
     _patchRemote(itemId);
@@ -162,11 +165,27 @@ class EquipmentNotifier extends StateNotifier<Map<String, EquipmentUserState>> {
   Future<void> setShopUrl(String itemId, String? url) async {
     final current = state[itemId] ?? const EquipmentUserState();
     final updated = Map<String, EquipmentUserState>.from(state);
-    updated[itemId] = EquipmentUserState(owned: current.owned, shopUrl: url);
+    updated[itemId] = EquipmentUserState(owned: current.owned, shopUrl: url, price: current.price);
     state = updated;
     await _save();
     _patchRemote(itemId);
   }
+
+  Future<void> setShopUrlAndPrice(String itemId, String? url, double? price) async {
+    final current = state[itemId] ?? const EquipmentUserState();
+    final updated = Map<String, EquipmentUserState>.from(state);
+    updated[itemId] = EquipmentUserState(owned: current.owned, shopUrl: url, price: price);
+    state = updated;
+    await _save();
+    _patchRemote(itemId);
+  }
+
+  double? price(String itemId) => state[itemId]?.price;
+
+  /// Total price of unowned items that have a price set.
+  double get remainingPrice => state.entries
+      .where((e) => !e.value.owned && e.value.price != null)
+      .fold(0.0, (sum, e) => sum + e.value.price!);
 
   int get ownedCount => state.values.where((v) => v.owned).length;
   int get totalCount => EquipmentCatalog.all.length;
