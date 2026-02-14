@@ -10,6 +10,7 @@ import '../achievements/achievements_screen.dart';
 import '../auth/login_screen.dart';
 import '../about/about_screen.dart';
 import '../equipment/equipment_screen.dart';
+import '../ski_map/ski_map_screen.dart';
 import '../jump_detail/jump_detail_screen.dart';
 import '../learn/learn_screen.dart';
 import '../stats/stats_screen.dart';
@@ -234,6 +235,24 @@ class ProfileScreen extends ConsumerWidget {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const EquipmentScreen()),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: _NavigationCard(
+                      icon: Icons.map,
+                      label: 'Ski Map',
+                      sublabelWidget: const Text(
+                        'Isola 2000 slopes & lifts',
+                        style: TextStyle(color: Colors.white38, fontSize: 11),
+                      ),
+                      color: const Color(0xFF4CAF50),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const SkiMapScreen()),
                       ),
                     ),
                   ),

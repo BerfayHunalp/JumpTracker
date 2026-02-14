@@ -9,6 +9,7 @@ import '../../core/models/trick.dart';
 import '../../shared/widgets/stat_card.dart';
 import '../jump_detail/jump_detail_screen.dart';
 import '../media/video_cut_screen.dart';
+import '../ski_map/ski_map_screen.dart';
 import 'history_providers.dart';
 
 class SessionDetailScreen extends ConsumerWidget {
@@ -137,7 +138,50 @@ class SessionDetailScreen extends ConsumerWidget {
               if (points.isEmpty) {
                 return const SliverToBoxAdapter(child: SizedBox.shrink());
               }
-              return SliverToBoxAdapter(child: _GpsMap(points: points));
+              return SliverToBoxAdapter(
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          SkiMapScreen(sessionId: sessionId),
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      _GpsMap(points: points),
+                      Positioned(
+                        bottom: 8,
+                        right: 24,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.map,
+                                  color: Color(0xFF4FC3F7), size: 14),
+                              SizedBox(width: 4),
+                              Text(
+                                'Ski Map',
+                                style: TextStyle(
+                                  color: Color(0xFF4FC3F7),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             },
             loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
             error: (_, __) =>
