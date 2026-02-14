@@ -15,8 +15,6 @@ import '../jump_detail/jump_detail_screen.dart';
 import '../learn/learn_screen.dart';
 import '../stats/stats_screen.dart';
 import '../tribute/tribute_screen.dart';
-import '../weather/weather_widget.dart';
-import '../challenges/king_of_hill_screen.dart';
 import 'edit_profile_screen.dart';
 import 'profile_providers.dart';
 import 'widgets/avatar_widget.dart';
@@ -121,14 +119,6 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
-          // Weather widget
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: WeatherWidget(),
-            ),
-          ),
 
           // Lifetime stats grid
           statsAsync.when(
@@ -281,24 +271,6 @@ class ProfileScreen extends ConsumerWidget {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const TributeScreen()),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: _NavigationCard(
-                      icon: Icons.flag,
-                      label: 'King of the Hill',
-                      sublabelWidget: const Text(
-                        'Compete at your favorite spots',
-                        style: TextStyle(color: Colors.white38, fontSize: 11),
-                      ),
-                      color: const Color(0xFFFF7043),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const KingOfHillScreen()),
                       ),
                     ),
                   ),

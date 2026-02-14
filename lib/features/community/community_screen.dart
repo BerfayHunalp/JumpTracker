@@ -6,6 +6,7 @@ import '../auth/login_screen.dart';
 import 'community_providers.dart';
 import 'friend_list_screen.dart';
 import 'add_friend_screen.dart';
+import '../challenges/king_of_hill_screen.dart';
 import 'widgets/period_selector.dart';
 import 'widgets/leaderboard_card.dart';
 import 'widgets/invite_share_card.dart';
@@ -72,6 +73,58 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                 selected: period,
                 onChanged: (p) =>
                     ref.read(leaderboardPeriodProvider.notifier).state = p,
+              ),
+            ),
+          ),
+
+          // King of the Hill
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: InkWell(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const KingOfHillScreen()),
+                ),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFFF7043).withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.flag, color: Color(0xFFFF7043), size: 22),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'King of the Hill',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              'Compete at your favorite jump spots',
+                              style: TextStyle(
+                                  color: Colors.white38, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right, color: Colors.white24, size: 20),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

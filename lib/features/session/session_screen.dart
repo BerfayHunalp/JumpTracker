@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../weather/weather_widget.dart';
 import '../challenges/challenge_providers.dart';
 import 'providers/session_providers.dart';
 import 'widgets/session_control_button.dart';
@@ -29,19 +28,6 @@ class SessionScreen extends ConsumerWidget {
             backgroundColor: theme.colorScheme.surface,
           ),
           const SliverToBoxAdapter(child: SessionControlButton()),
-
-          // Weather widget (uses GPS when available)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: session.gpsTrack.isNotEmpty
-                  ? WeatherWidget(
-                      latitude: session.gpsTrack.last.latitude,
-                      longitude: session.gpsTrack.last.longitude,
-                    )
-                  : const WeatherWidget(),
-            ),
-          ),
 
           // Ghost challenge overlay
           if (session.isRecording && session.gpsTrack.isNotEmpty)

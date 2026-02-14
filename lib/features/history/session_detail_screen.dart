@@ -9,7 +9,6 @@ import '../../core/models/trick.dart';
 import '../../shared/widgets/stat_card.dart';
 import '../jump_detail/jump_detail_screen.dart';
 import '../media/video_cut_screen.dart';
-import '../weather/weather_widget.dart';
 import 'history_providers.dart';
 
 class SessionDetailScreen extends ConsumerWidget {
@@ -87,32 +86,6 @@ class SessionDetailScreen extends ConsumerWidget {
             loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
             error: (_, __) =>
                 const SliverToBoxAdapter(child: SizedBox.shrink()),
-          ),
-
-          // Weather snapshot
-          gpsAsync.when(
-            data: (points) {
-              if (points.isEmpty) {
-                return const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: WeatherWidget(),
-                  ),
-                );
-              }
-              // Use first GPS point for weather location
-              return SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: WeatherWidget(
-                    latitude: points.first.latitude,
-                    longitude: points.first.longitude,
-                  ),
-                ),
-              );
-            },
-            loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-            error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
           ),
 
           // Auto-Cut Video button
