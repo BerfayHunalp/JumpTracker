@@ -7,23 +7,12 @@ import 'ski_map_models.dart';
 const _cacheKey = 'ski_map_isola2000';
 const _cacheDurationHours = 168; // 7 days
 
-/// Isola 2000 bounding box.
-const _south = 44.15;
-const _west = 7.10;
-const _north = 44.22;
-const _east = 7.20;
-
-/// Overpass QL query for pistes and lifts.
-const _overpassQuery = '''
-[out:json][timeout:25];
-(
-  way["piste:type"="downhill"]($_south,$_west,$_north,$_east);
-  way["aerialway"]($_south,$_west,$_north,$_east);
-);
-out body;
->;
-out skel qt;
-''';
+/// Overpass QL query — `out geom` returns coordinates directly on ways (faster).
+const _overpassQuery =
+    '[out:json][timeout:60];'
+    '(way["piste:type"="downhill"](44.15,7.10,44.22,7.20);'
+    'way["aerialway"](44.15,7.10,44.22,7.20););'
+    'out geom;';
 
 /// Main provider: returns cached data or fetches fresh from Overpass API.
 final resortMapDataProvider = FutureProvider<ResortMapData>((ref) async {
@@ -44,7 +33,10 @@ final resortMapDataProvider = FutureProvider<ResortMapData>((ref) async {
 
   // Fetch from Overpass API
   final url = Uri.parse('https://overpass-api.de/api/interpreter');
-  final response = await http.post(url, body: {'data': _overpassQuery});
+  final response = await http.post(
+    url,
+    body: {'data': _overpassQuery},
+  ).timeout(const Duration(seconds: 60));
 
   if (response.statusCode != 200) {
     // Return stale cache if available
@@ -66,46 +58,38 @@ final resortMapDataProvider = FutureProvider<ResortMapData>((ref) async {
   return data;
 });
 
-/// Parses Overpass JSON response into ResortMapData.
+/// Parses Overpass JSON `out geom` response — geometry is inline on each way.
 ResortMapData _parseOverpassResponse(Map<String, dynamic> json) {
   final elements = json['elements'] as List;
-
-  // First pass: build node lookup
-  final nodes = <int, LatLngPoint>{};
-  for (final el in elements) {
-    if ((el as Map<String, dynamic>)['type'] == 'node') {
-      nodes[el['id'] as int] = LatLngPoint(
-        (el['lat'] as num).toDouble(),
-        (el['lon'] as num).toDouble(),
-      );
-    }
-  }
 
   final slopes = <SkiSlope>[];
   final lifts = <SkiLift>[];
 
-  // Second pass: resolve ways
   for (final el in elements) {
-    if ((el as Map<String, dynamic>)['type'] != 'way') continue;
-    final tags = (el['tags'] as Map<String, dynamic>?) ?? {};
-    final nodeIds = (el['nodes'] as List).cast<int>();
-    final points = nodeIds
-        .where((id) => nodes.containsKey(id))
-        .map((id) => nodes[id]!)
-        .toList();
+    final element = el as Map<String, dynamic>;
+    if (element['type'] != 'way') continue;
 
-    if (points.length < 2) continue;
+    final tags = (element['tags'] as Map<String, dynamic>?) ?? {};
+    final geometry = element['geometry'] as List?;
+    if (geometry == null || geometry.length < 2) continue;
+
+    final points = geometry
+        .map((g) => LatLngPoint(
+              (g['lat'] as num).toDouble(),
+              (g['lon'] as num).toDouble(),
+            ))
+        .toList();
 
     if (tags.containsKey('piste:type')) {
       slopes.add(SkiSlope(
-        osmId: el['id'] as int,
+        osmId: element['id'] as int,
         name: (tags['name'] as String?) ?? '',
         difficulty: (tags['piste:difficulty'] as String?) ?? 'easy',
         points: points,
       ));
     } else if (tags.containsKey('aerialway')) {
       lifts.add(SkiLift(
-        osmId: el['id'] as int,
+        osmId: element['id'] as int,
         name: (tags['name'] as String?) ?? '',
         liftType: tags['aerialway'] as String? ?? 'chair_lift',
         points: points,
