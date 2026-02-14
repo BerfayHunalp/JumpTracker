@@ -245,7 +245,7 @@ class ProfileScreen extends ConsumerWidget {
                       icon: Icons.sos,
                       label: 'Emergency',
                       sublabelWidget: const Text(
-                        'Share live location off-piste',
+                        'WhatsApp contacts before off-piste',
                         style: TextStyle(color: Colors.white38, fontSize: 11),
                       ),
                       color: const Color(0xFFEF5350),

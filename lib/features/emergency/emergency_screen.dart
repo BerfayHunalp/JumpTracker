@@ -353,7 +353,7 @@ class EmergencyScreen extends ConsumerWidget {
                       },
                 icon: const Icon(Icons.send, size: 20),
                 label: const Text(
-                  'I understand — Share via WhatsApp',
+                  'I understand — Open WhatsApp',
                   style: TextStyle(fontWeight: FontWeight.w700),
                 ),
                 style: FilledButton.styleFrom(
@@ -419,11 +419,11 @@ class EmergencyScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Icon(Icons.location_on,
+            const Icon(Icons.chat,
                 size: 36, color: Color(0xFF25D366)),
             const SizedBox(height: 10),
             const Text(
-              'Share your live location',
+              'Message your contacts',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -432,7 +432,7 @@ class EmergencyScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Once WhatsApp opens, tap the + icon (or the attachment clip), then Location, then "Share live location".',
+              'Let your emergency contacts know you\'re going off-piste.',
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.white54,
@@ -449,7 +449,7 @@ class EmergencyScreen extends ConsumerWidget {
                       onPressed: () => _openWhatsApp(contact),
                       icon: const Icon(Icons.chat, size: 20),
                       label: Text(
-                        'Open WhatsApp with ${contact.name}',
+                        'WhatsApp ${contact.name}',
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       style: FilledButton.styleFrom(
